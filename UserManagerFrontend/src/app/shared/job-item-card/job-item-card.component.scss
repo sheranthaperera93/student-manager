@@ -1,0 +1,35 @@
+.item {
+    display: flex;
+    height: 55px;
+    padding: 10px;
+    align-items: center;
+}
+
+.item.border-top {
+    border-top: solid;
+    border-color: #ecebeb;
+    border-width: thin;
+}
+
+.item-details {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.item-name {
+    color: #656565;
+    font-weight: bolder;
+}
+
+.item-description {
+    font-size: 0.7rem;
+    color: #bebebe;
+}
+
+.messages-label {
+    height: 20px;
+    width: 95px;
+    font-size: 11px;
+    line-height: 11px;
+    text-transform: none;
+}

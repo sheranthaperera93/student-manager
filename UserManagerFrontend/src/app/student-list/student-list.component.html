@@ -1,0 +1,75 @@
+<div class="card">
+  <div class="card-header">
+    <h3>Student List</h3>
+  </div>
+  <div class="card-body">
+    <div class="list-actions">
+      <button
+        kendoButton
+        [svgIcon]="!showExportPopup ? carrotDownIcon : carrotUpIcon"
+        (click)="showExportPopup = !showExportPopup"
+        #exportAnchor
+      >
+        Export
+      </button>
+    </div>
+    <kendo-grid
+      [data]="gridData | async"
+      [loading]="loading"
+      [skip]="pageState.skip"
+      [pageSize]="pageState.take"
+      [rowHeight]="36"
+      [height]="450"
+      scrollable="virtual"
+      (pageChange)="pageChange($event)"
+    >
+      <kendo-grid-column field="id" title="ID" [width]="100">
+      </kendo-grid-column>
+      <kendo-grid-column field="name" title="Name"> </kendo-grid-column>
+      <kendo-grid-column field="email" title="Email"> </kendo-grid-column>
+      <kendo-grid-column title="Date of Birth">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          {{ formatDate(dataItem.date_of_birth) }}
+        </ng-template>
+      </kendo-grid-column>
+      <kendo-grid-column title="Age">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          {{ calculateAge(dataItem.date_of_birth) }}
+        </ng-template>
+      </kendo-grid-column>
+      <kendo-grid-column title="Actions" [width]="100">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <button
+            kendoButton
+            fillMode="flat"
+            (click)="onEditStudentHandler(dataItem)"
+          >
+            <kendo-svgicon [icon]="editIcon"></kendo-svgicon>
+          </button>
+          <button
+            kendoButton
+            fillMode="flat"
+            (click)="onDeleteStudentHandler(dataItem)"
+          >
+            <kendo-svgicon [icon]="deleteIcon"></kendo-svgicon>
+          </button>
+        </ng-template>
+      </kendo-grid-column>
+    </kendo-grid>
+  </div>
+ 
+  <!-- Dialog Container -->
+  <div kendoDialogContainer></div>
+
+  <!-- Export Popup -->
+  <kendo-popup
+    [anchor]="exportAnchor.element"
+    (anchorViewportLeave)="showExportPopup = false"
+    [popupAlign]="{ horizontal: 'right', vertical: 'top' }"
+    [anchorAlign]="{ horizontal: 'right', vertical: 'bottom' }"
+    [margin]="{ horizontal: 10, vertical: 10 }"
+    *ngIf="showExportPopup"
+  >
+    <app-export-popup (export)="onExportHandler($event)"></app-export-popup>
+  </kendo-popup>
+</div>

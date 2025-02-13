@@ -1,0 +1,39 @@
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# NestJS
+*.js
+*.d.ts
+*.js.map
+*.tsbuildinfo
+
+# Angular
+.angular/
+.angular-cache/
+coverage/
+tmp/
+temp/
+out-tsc/
+src/environments/environment*.ts
+src/assets/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

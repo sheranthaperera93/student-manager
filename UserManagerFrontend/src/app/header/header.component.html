@@ -1,0 +1,58 @@
+<kendo-appbar position="top" themeColor="dark" class="header">
+  <kendo-appbar-section>
+    <div class="title">Student Management</div>
+  </kendo-appbar-section>
+
+  <kendo-appbar-spacer></kendo-appbar-spacer>
+
+  <kendo-appbar-section>
+    <button kendoButton fillMode="flat" (click)="openUploadDialog()">
+      <kendo-svgicon [icon]="menuIcon"></kendo-svgicon>
+    </button>
+  </kendo-appbar-section>
+
+  <kendo-appbar-section class="actions">
+    <kendo-badge-container>
+      <button
+        kendoButton
+        fillMode="flat"
+        #notificationAnchor
+        (click)="showNotificationPopup = !showNotificationPopup"
+      >
+        <kendo-svgicon [icon]="bellIcon"></kendo-svgicon>
+      </button>
+      <kendo-badge
+        *ngIf="getFailedJobCount() > 0"
+        shape="dot"
+        themeColor="error"
+        size="small"
+        position="inside"
+      ></kendo-badge>
+    </kendo-badge-container>
+  </kendo-appbar-section>
+</kendo-appbar>
+
+<!-- Upload Dialog -->
+<kendo-dialog
+  title="Upload File"
+  *ngIf="isUploadDialogVisible"
+  (close)="closeUploadDialog()"
+  [width]="600"
+>
+  <app-upload
+    (closeDialog)="closeUploadDialog()"
+    (triggerUpload)="uploadFile($event)"
+  ></app-upload>
+</kendo-dialog>
+
+<!-- Notifications Popup -->
+<kendo-popup
+  [anchor]="notificationAnchor.element"
+  (anchorViewportLeave)="showNotificationPopup = false"
+  [popupAlign]="{ horizontal: 'right', vertical: 'top' }"
+  [anchorAlign]="{ horizontal: 'right', vertical: 'bottom' }"
+  [margin]="{ horizontal: 10, vertical: 10 }"
+  *ngIf="showNotificationPopup"
+>
+  <app-notifications *ngIf="jobQueue.length > 0" [items]="jobQueue" title="Notifications"></app-notifications>
+</kendo-popup>

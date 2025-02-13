@@ -1,0 +1,30 @@
+<div class="item" [class.border-top]="borderTop">
+  <kendo-avatar
+    [imageSrc]="getImageUrl(item.status)"
+    shape="circle"
+    width="40"
+    height="40"
+    [fillMode]="'none'"
+  >
+  </kendo-avatar>
+  <div class="item-details">
+    <div class="item-name">{{ item.name }}</div>
+    <div class="item-description">{{formatName(item.type)}} | {{ item.date | date : "dd/MM/yyyy" }}</div>
+  </div>
+  <div class="item-actions">
+    <button
+      *ngIf="item.type === JOB_TYPES.UPLOAD && item.status === JOB_STATUS.FAILED"
+      kendoButton
+      [svgIcon]="retryIcon"
+      title="Retry"
+      (click)="triggerAction(item)"
+    ></button>
+    <button
+      *ngIf="item.type === JOB_TYPES.EXPORT && item.status === JOB_STATUS.SUCCESS"
+      kendoButton
+      [svgIcon]="downloadIcon"
+      title="Download"
+      (click)="triggerAction(item)"
+    ></button>
+  </div>
+</div>

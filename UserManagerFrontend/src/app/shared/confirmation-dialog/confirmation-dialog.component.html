@@ -1,0 +1,21 @@
+<kendo-dialog
+  [title]="title"
+  *ngIf="isVisible"
+  (close)="closeDialog(DIALOG_ACTIONS.CANCEL)"
+  [minWidth]="250"
+  [width]="450"
+>
+  <p style="margin: 30px; text-align: center">
+    {{ message }}
+  </p>
+  <kendo-dialog-actions>
+    <button kendoButton (click)="closeDialog(DIALOG_ACTIONS.NO)">No</button>
+    <button
+      kendoButton
+      (click)="closeDialog(DIALOG_ACTIONS.YES)"
+      themeColor="primary"
+    >
+      Yes
+    </button>
+  </kendo-dialog-actions>
+</kendo-dialog>

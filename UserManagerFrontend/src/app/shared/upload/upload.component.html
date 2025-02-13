@@ -1,0 +1,16 @@
+<div class="upload-container">
+  <p class="upload-instructions">Please select a file to upload:</p>
+  <kendo-fileselect
+    [multiple]="false"
+    (select)="onFileSelected($event)"
+    (remove)="onFileRemoved()"
+    [restrictions]="uploadRestrictions"
+  ></kendo-fileselect>
+</div>
+
+<kendo-dialog-actions>
+  <button kendoButton (click)="close()" class="close-button">Close</button>
+  <button kendoButton class="upload-button" (click)="uploadFile()">
+    Upload
+  </button>
+</kendo-dialog-actions>

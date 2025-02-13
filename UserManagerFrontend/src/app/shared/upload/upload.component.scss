@@ -1,0 +1,27 @@
+.upload-container {
+    padding: 20px;
+    text-align: center;
+}
+
+.upload-instructions {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.file-input {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.close-button {
+    background-color: #f44336;
+    color: white;
+}
+
+.upload-button {
+    background-color: #4caf50;
+    color: white;
+}

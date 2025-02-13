@@ -1,0 +1,28 @@
+<div class="export-popup">
+  <h3>Export Records</h3>
+  <div class="export-options">
+    <kendo-label
+      class="k-display-block age-range-label"
+      [for]="ageRangeSelector"
+      text="Age Range"
+    ></kendo-label>
+    <kendo-rangeslider
+      #ageRangeSelector
+      [fixedTickWidth]="4"
+      [min]="minAge"
+      [max]="maxAge"
+      [smallStep]="1"
+      tickPlacement="both"
+      [(ngModel)]="ageRange"
+    >
+      <kendo-rangeslider-messages
+        increment="Right"
+        decrement="Left"
+      ></kendo-rangeslider-messages>
+    </kendo-rangeslider>
+    <div class="age-range-value">From {{ ageRange[0] }} to {{ageRange[1]}}</div>
+  </div>
+  <div class="actions">
+    <button kendoButton (click)="onExportHandler()">Export</button>
+  </div>
+</div>

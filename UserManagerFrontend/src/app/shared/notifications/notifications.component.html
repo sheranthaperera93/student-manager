@@ -1,0 +1,29 @@
+<div class="notification-content">
+  <kendo-listview
+    [data]="items"
+    containerClass="k-d-flex k-flex-col k-flex-nowrap"
+  >
+    <ng-template kendoListViewHeaderTemplate>
+      <div class="header">{{title}}</div>
+    </ng-template>
+    <ng-template
+      kendoListViewItemTemplate
+      let-dataItem="dataItem"
+      let-isFirst="isFirst"
+    >
+      <app-job-item-card
+        class="notification-item"
+        [item]="dataItem"
+        [borderTop]="!isFirst"
+        (action)="onActionHandler($event)"
+      >
+      </app-job-item-card>
+    </ng-template>
+
+    <ng-template kendoListViewFooterTemplate>
+      <div class="footer" *ngIf="getFailedJobCount() > 0">
+        {{ getFailedJobCount() }} of {{ items.length }} jobs failed
+      </div>
+    </ng-template>
+  </kendo-listview>
+</div>
