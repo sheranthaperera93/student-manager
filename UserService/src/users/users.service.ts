@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { User } from './models/user.model';
 import { UpdateUserInput } from './models/update-user.model';
 import { createWriteStream } from 'fs';
@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User as UserEntity } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
+import { CustomException } from 'src/core/custom-exception';
 
 @Injectable()
 export class UsersService {
@@ -38,22 +39,50 @@ export class UsersService {
   }
 
   async update(id: number, updateUserInput: UpdateUserInput): Promise<string> {
-    const user = await this.findById(id);
-    if (!user) {
-      throw new Error('User not found');
+    try {
+      const user = await this.findById(id);
+      if (!user) {
+        throw new CustomException(
+          'User not found',
+          1004,
+          {},
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      Object.assign(user, updateUserInput);
+      await this.userRepository.update({ id: user.id }, user);
+      return 'User updated successfully';
+    } catch (error) {
+      throw new CustomException(
+        'User update failed',
+        1004,
+        error,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    Object.assign(user, updateUserInput);
-    await this.userRepository.update({ id: user.id }, user);
-    return "User updated successfully";
   }
 
   async delete(id: number): Promise<string> {
-    const user = await this.findById(id);
+    try {
+      const user = await this.findById(id);
     if (!user) {
-      throw new Error('User not found');
+      throw new CustomException(
+        'User not found',
+        1004,
+        {},
+        HttpStatus.BAD_REQUEST,
+      );
     }
     await this.userRepository.delete({ id });
     return 'User deleted successfully';
+    } catch (error) {
+      throw new CustomException(
+        'User delete failed',
+        1004,
+        error,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async handleUploadProcess(file: FileUpload) {
