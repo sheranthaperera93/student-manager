@@ -9,6 +9,7 @@ import { UsersResolver } from './users.resolver';
 import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
+import { UsersController } from './users.controller';
 
 @Module({
   providers: [UsersResolver, UsersService],
@@ -22,5 +23,6 @@ import { User } from 'src/entities/user.entity';
       plugins: [ApolloServerPluginInlineTrace()],
     }),
   ],
+  controllers: [UsersController],
 })
 export class UsersModule {}

@@ -3,7 +3,6 @@ import { User } from './models/user.model';
 import { UpdateUserInput } from './models/update-user.model';
 import { createWriteStream } from 'fs';
 import { join } from 'path';
-import { FileUpload } from 'graphql-upload-minimal';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User as UserEntity } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -65,16 +64,16 @@ export class UsersService {
   async delete(id: number): Promise<string> {
     try {
       const user = await this.findById(id);
-    if (!user) {
-      throw new CustomException(
-        'User not found',
-        1004,
-        {},
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    await this.userRepository.delete({ id });
-    return 'User deleted successfully';
+      if (!user) {
+        throw new CustomException(
+          'User not found',
+          1004,
+          {},
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      await this.userRepository.delete({ id });
+      return 'User deleted successfully';
     } catch (error) {
       throw new CustomException(
         'User delete failed',
@@ -85,7 +84,7 @@ export class UsersService {
     }
   }
 
-  async handleUploadProcess(file: FileUpload) {
+  async handleUploadProcess(file: Express.Multer.File) {
     const filePath = await this.uploadFile(file);
     console.log(filePath);
     // Create Job process file
@@ -94,22 +93,26 @@ export class UsersService {
     return true;
   }
 
-  /**
-   * Uploads a file to the server.
-   *
-   * @param {FileUpload} file - The file to be uploaded, containing a createReadStream function and filename.
-   * @returns {Promise<string>} - A promise that resolves to the path where the file was saved.
-   *
-   * @throws {Error} - Throws an error if the file upload fails.
-   */
-  async uploadFile(file: FileUpload): Promise<string> {
-    const { createReadStream, filename } = file;
-    const path = join(__dirname, '..', 'uploads', `${Date.now()}-${filename}`);
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    const { stream } = file;
+    const fileName = `${Date.now()}-${file.originalname}`;
+    const filePath = join(__dirname, '..', '..', 'uploads', fileName);
+
     return new Promise((resolve, reject) => {
-      createReadStream()
-        .pipe(createWriteStream(path))
-        .on('finish', () => resolve(path))
-        .on('error', () => reject(new Error('Error uploading file')));
+      const writeStream = createWriteStream(filePath);
+      stream
+        .pipe(writeStream)
+        .on('finish', () => resolve(filePath))
+        .on('error', (error) =>
+          reject(
+            new CustomException(
+              'Failed on file upload',
+              1005,
+              error,
+              HttpStatus.BAD_REQUEST,
+            ),
+          ),
+        );
     });
   }
 }

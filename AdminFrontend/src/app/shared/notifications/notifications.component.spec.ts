@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NotificationsComponent } from './notifications.component';
+import { ListViewModule } from '@progress/kendo-angular-listview';
 
 describe('NotificationsComponent', () => {
   let component: NotificationsComponent;
@@ -8,6 +9,7 @@ describe('NotificationsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [ListViewModule],
       declarations: [NotificationsComponent]
     })
     .compileComponents();

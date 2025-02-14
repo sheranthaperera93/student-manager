@@ -1,15 +1,26 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
+import { HeaderComponent } from './header/header.component';
+import { ApolloModule } from 'apollo-angular';
+import { AppBarModule } from '@progress/kendo-angular-navigation';
+import { SVGIconModule } from '@progress/kendo-angular-icons';
+import { BadgeModule } from '@progress/kendo-angular-indicators';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        RouterModule.forRoot([])
+        RouterModule.forRoot([]),
+        ApolloModule,
+        AppBarModule,
+        SVGIconModule,
+        BadgeModule,
+        
       ],
       declarations: [
-        AppComponent
+        AppComponent,
+        HeaderComponent
       ],
     }).compileComponents();
   });
@@ -20,16 +31,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'user-manager-fe'`, () => {
+  it(`should have as title 'Student Manager'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('user-manager-fe');
+    expect(app.title).toEqual('Student Manager');
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, user-manager-fe');
-  });
 });

@@ -1,7 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Notification } from '../../model/notification.model';
 import { JOB_STATUS, JOB_TYPES } from '../../core/constants';
-import { arrowRotateCwIcon, SVGIcon, downloadIcon } from '@progress/kendo-svg-icons';
+import {
+  arrowRotateCwIcon,
+  SVGIcon,
+  downloadIcon,
+} from '@progress/kendo-svg-icons';
 
 @Component({
   selector: 'app-job-item-card',
@@ -43,7 +47,7 @@ export class JobItemCardComponent {
 
   /**
    * Triggers an action based on the provided notification item.
-   * 
+   *
    * @param item - The notification item that will be used to trigger the action.
    * @returns void
    */

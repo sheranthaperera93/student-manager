@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ExportPopupComponent } from './export-popup.component';
+import { LabelModule } from '@progress/kendo-angular-label';
+import { RangeSliderModule } from '@progress/kendo-angular-inputs';
+import { FormsModule } from '@angular/forms';
 
 describe('ExportPopupComponent', () => {
   let component: ExportPopupComponent;
@@ -8,9 +11,9 @@ describe('ExportPopupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ExportPopupComponent]
-    })
-    .compileComponents();
+      imports: [LabelModule, RangeSliderModule, FormsModule],
+      declarations: [ExportPopupComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ExportPopupComponent);
     component = fixture.componentInstance;

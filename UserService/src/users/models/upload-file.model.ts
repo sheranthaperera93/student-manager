@@ -1,8 +1,6 @@
-import { InputType, Field } from '@nestjs/graphql';
-import { GraphQLUpload, FileUpload } from 'graphql-upload-minimal';
+import { Type } from 'class-transformer';
 
-@InputType()
-export class UploadFileInput {
-  @Field(() => GraphQLUpload)
-  file: Promise<FileUpload>;
+export class UploadFileDTO {
+  @Type(() => Object)
+  file: Express.Multer.File;
 }

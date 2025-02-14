@@ -9,7 +9,7 @@ import { NotificationService } from '../../services/notification.service';
   styleUrl: './notifications.component.scss',
 })
 export class NotificationsComponent {
-  @Input() items!: Notification[];
+  @Input() items: Notification[] = [];
   @Input() title: string = "";
 
   constructor(private readonly notificationService: NotificationService) {}
