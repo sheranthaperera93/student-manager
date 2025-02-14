@@ -6,12 +6,17 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GridDataResult } from '@progress/kendo-angular-grid';
 import { UpdateStudent } from '../model/student.model';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StudentService {
-  constructor(private readonly apollo: Apollo) {}
+  constructor(
+    private readonly apollo: Apollo,
+    private readonly http: HttpClient
+  ) {}
 
   getStudents = (state: State): Observable<GridDataResult> => {
     return this.apollo
@@ -90,17 +95,9 @@ export class StudentService {
       );
   };
 
-  uploadFile = (file: File) => {
-    return this.apollo.mutate({
-      mutation: gql`
-        mutation UploadFile($file: UploadFileInput!) {
-          uploadFile(file: $file) {
-            success
-            message
-          }
-        }
-      `,
-      variables: { file },
-    });
+  uploadFile = (file: File): Observable<any> => {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post(environment.userService + '/users/uploadUsers', formData);
   };
 }

@@ -77,7 +77,6 @@ export class HeaderComponent {
    * @param file - The file information to be uploaded. It can be of type FileInfo or undefined.
    */
   uploadFile(file: FileInfo | undefined): void {
-    console.log('Uploading file:', file);
     if (file) {
       this.studentService.uploadFile(file.rawFile as File).subscribe({
         next: (result) => {

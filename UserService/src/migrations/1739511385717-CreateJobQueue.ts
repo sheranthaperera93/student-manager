@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateUserTable1739424788920 implements MigrationInterface {
+export class CreateJobQueue1739511385717 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'user',
+        name: 'job_queue',
         columns: [
           {
             name: 'id',
@@ -14,22 +14,20 @@ export class CreateUserTable1739424788920 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'name',
-            type: 'varchar',
-            length: '255',
-            isNullable: false,
+            name: 'jobData',
+            type: 'text',
           },
           {
-            name: 'date_of_birth',
+            name: 'status',
+            type: 'int',
+          },
+          {
+            name: 'createdDate',
             type: 'date',
-            isNullable: false,
           },
           {
-            name: 'email',
-            type: 'varchar',
-            length: '255',
-            isUnique: true,
-            isNullable: false,
+            name: 'jobCompleteDate',
+            type: 'date',
           },
         ],
       }),
@@ -38,6 +36,6 @@ export class CreateUserTable1739424788920 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('user');
+    await queryRunner.dropTable('job_queue');
   }
 }

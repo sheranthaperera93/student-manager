@@ -1,19 +1,21 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { User } from './models/user.model';
 import { UpdateUserInput } from './models/update-user.model';
-import { createWriteStream } from 'fs';
+import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User as UserEntity } from 'src/entities/user.entity';
+import { User, User as UserEntity } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { CustomException } from 'src/core/custom-exception';
+import { JobQueue } from 'src/entities/job_queue.entity';
+import { JOB_QUEUE_STATUS, JobData } from 'src/core/constants';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly jobQueueRepository: Repository<JobQueue>,
   ) {}
 
   async findAll({
@@ -87,32 +89,42 @@ export class UsersService {
   async handleUploadProcess(file: Express.Multer.File) {
     const filePath = await this.uploadFile(file);
     console.log(filePath);
-    // Create Job process file
     // Insert Job details to job queue table with pending status
+    let jobQueue = new JobQueue();
+    jobQueue.createdDate = new Date();
+    jobQueue.status = JOB_QUEUE_STATUS.PENDING;
+    let tmpJobData: JobData = {
+      filePath,
+    };
+    jobQueue.jobData = JSON.stringify(tmpJobData);
+    this.jobQueueRepository.save(jobQueue);
+    // Create Job process file
     // Send message to notification service to update UI layer with job status
     return true;
   }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    const { stream } = file;
     const fileName = `${Date.now()}-${file.originalname}`;
-    const filePath = join(__dirname, '..', '..', 'uploads', fileName);
+    if (!existsSync(join(__dirname, '../', 'uploads'))) {
+      mkdirSync(join(__dirname, '../', 'uploads'));
+    }
+    const filePath = join(__dirname, '../', 'uploads', fileName);
 
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const writeStream = createWriteStream(filePath);
-      stream
-        .pipe(writeStream)
-        .on('finish', () => resolve(filePath))
-        .on('error', (error) =>
-          reject(
-            new CustomException(
-              'Failed on file upload',
-              1005,
-              error,
-              HttpStatus.BAD_REQUEST,
-            ),
+      writeStream.write(file.buffer);
+      writeStream.end();
+      writeStream.on('finish', () => resolve(filePath));
+      writeStream.on('error', (error) =>
+        reject(
+          new CustomException(
+            'Failed on file upload',
+            1005,
+            error,
+            HttpStatus.BAD_REQUEST,
           ),
-        );
+        ),
+      );
     });
   }
 }

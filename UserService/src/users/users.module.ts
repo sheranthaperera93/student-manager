@@ -10,13 +10,14 @@ import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { UsersController } from './users.controller';
+import { JobQueue } from 'src/entities/job_queue.entity';
 
 @Module({
   providers: [UsersResolver, UsersService],
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, JobQueue]),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
-      driver: ApolloFederationDriver, 
+      driver: ApolloFederationDriver,
       autoSchemaFile: {
         federation: 2,
       },

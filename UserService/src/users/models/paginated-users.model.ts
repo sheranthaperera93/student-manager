@@ -1,5 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { User } from './user.model';
+import { User } from 'src/entities/user.entity';
 
 @ObjectType()
 export class PaginatedUsers {

@@ -31,5 +31,18 @@ services:
     ports:
       - '3003:3003'
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=FortudeSmP@2023
+    volumes:
+      - redis-data:/data
+
 volumes:
   pgdata:
+    driver: local
+  redis-data:
+    driver: local

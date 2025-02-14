@@ -7,6 +7,7 @@ import {
   pencilIcon,
   SVGIcon,
   trashIcon,
+  arrowRotateCwIcon
 } from '@progress/kendo-svg-icons';
 import { ExportParameters } from '../core/constants';
 import { State } from '@progress/kendo-data-query';
@@ -35,6 +36,7 @@ export class StudentListComponent implements OnInit {
   public deleteIcon: SVGIcon = trashIcon;
   public carrotDownIcon: SVGIcon = caretAltDownIcon;
   public carrotUpIcon: SVGIcon = caretAltUpIcon;
+  public refreshIcon: SVGIcon = arrowRotateCwIcon;
   public showExportPopup: boolean = false;
 
   // Paging variables
@@ -72,6 +74,10 @@ export class StudentListComponent implements OnInit {
 
   public pageChange(state: PageChangeEvent): void {
     this.stateChange.next(state);
+  }
+
+  public refreshData = () => {
+    this.stateChange.next(this.pageState);
   }
 
   /**

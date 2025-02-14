@@ -12,6 +12,9 @@
       >
         Export
       </button>
+      <button kendoButton [svgIcon]="refreshIcon" (click)="refreshData()">
+        Refresh
+      </button>
     </div>
     <kendo-grid
       [data]="gridData | async"
@@ -57,7 +60,7 @@
       </kendo-grid-column>
     </kendo-grid>
   </div>
- 
+
   <!-- Dialog Container -->
   <div kendoDialogContainer></div>
 
