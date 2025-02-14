@@ -2,26 +2,22 @@ import { TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { HeaderComponent } from './header/header.component';
-import { ApolloModule } from 'apollo-angular';
 import { AppBarModule } from '@progress/kendo-angular-navigation';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { BadgeModule } from '@progress/kendo-angular-indicators';
+import { ApolloTestingModule } from 'apollo-angular/testing';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
         RouterModule.forRoot([]),
-        ApolloModule,
+        ApolloTestingModule,
         AppBarModule,
         SVGIconModule,
         BadgeModule,
-        
       ],
-      declarations: [
-        AppComponent,
-        HeaderComponent
-      ],
+      declarations: [AppComponent, HeaderComponent],
     }).compileComponents();
   });
 
@@ -36,5 +32,4 @@ describe('AppComponent', () => {
     const app = fixture.componentInstance;
     expect(app.title).toEqual('Student Manager');
   });
-
 });
