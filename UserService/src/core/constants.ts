@@ -6,4 +6,5 @@ export enum JOB_QUEUE_STATUS {
 
 export interface JobData {
     filePath: string,
+    fileName: string,
 }

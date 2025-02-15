@@ -98,6 +98,6 @@ export class StudentService {
   uploadFile = (file: File): Observable<any> => {
     const formData = new FormData();
     formData.append('file', file, file.name);
-    return this.http.post(environment.userService + '/users/uploadUsers', formData);
+    return this.http.post(environment.userService + '/users/upload', formData);
   };
 }

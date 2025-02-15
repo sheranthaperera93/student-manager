@@ -14,6 +14,6 @@ export class JobQueue {
   @Column('date')
   createdDate: Date;
 
-  @Column('date')
+  @Column('date', { nullable: true })
   jobCompleteDate: Date;
 }

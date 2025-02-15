@@ -3,19 +3,22 @@ import { UpdateUserInput } from './models/update-user.model';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, User as UserEntity } from 'src/entities/user.entity';
+import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { CustomException } from 'src/core/custom-exception';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { JOB_QUEUE_STATUS, JobData } from 'src/core/constants';
+import { ProducerService } from 'src/kafka/producer/producer.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(JobQueue)
     private readonly jobQueueRepository: Repository<JobQueue>,
+    private readonly kafka: ProducerService,
   ) {}
 
   async findAll({
@@ -86,25 +89,24 @@ export class UsersService {
     }
   }
 
-  async handleUploadProcess(file: Express.Multer.File) {
-    const filePath = await this.uploadFile(file);
-    console.log(filePath);
+  handleUploadProcess = async (file: Express.Multer.File): Promise<{fileName: string, filePath: string}> => {
+    const { fileName, filePath } = await this.uploadFile(file);
+    console.log(fileName);
     // Insert Job details to job queue table with pending status
-    let jobQueue = new JobQueue();
-    jobQueue.createdDate = new Date();
-    jobQueue.status = JOB_QUEUE_STATUS.PENDING;
-    let tmpJobData: JobData = {
-      filePath,
-    };
-    jobQueue.jobData = JSON.stringify(tmpJobData);
-    this.jobQueueRepository.save(jobQueue);
-    // Create Job process file
-    // Send message to notification service to update UI layer with job status
-    return true;
-  }
+    await this.createUploadJob(filePath, fileName);
 
-  async uploadFile(file: Express.Multer.File): Promise<string> {
-    const fileName = `${Date.now()}-${file.originalname}`;
+    // Create Job process file
+    await this.sendUploadJob(filePath, fileName);
+
+    // Send message to notification service to update UI layer with job status
+
+    return {filePath, fileName};
+  };
+
+  async uploadFile(
+    file: Express.Multer.File,
+  ): Promise<{ fileName: string; filePath: string }> {
+    const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
     if (!existsSync(join(__dirname, '../', 'uploads'))) {
       mkdirSync(join(__dirname, '../', 'uploads'));
     }
@@ -114,7 +116,7 @@ export class UsersService {
       const writeStream = createWriteStream(filePath);
       writeStream.write(file.buffer);
       writeStream.end();
-      writeStream.on('finish', () => resolve(filePath));
+      writeStream.on('finish', () => resolve({ fileName, filePath }));
       writeStream.on('error', (error) =>
         reject(
           new CustomException(
@@ -126,5 +128,52 @@ export class UsersService {
         ),
       );
     });
+  }
+
+  createUploadJob = async (filePath: string, fileName: string) => {
+    let jobQueue = new JobQueue();
+    jobQueue.createdDate = new Date();
+    jobQueue.status = JOB_QUEUE_STATUS.PENDING;
+    let tmpJobData: JobData = {
+      filePath,
+      fileName,
+    };
+    jobQueue.jobData = JSON.stringify(tmpJobData);
+    await this.jobQueueRepository.save(jobQueue);
+  };
+
+  sendUploadJob = async (filePath: string, fileName: string) => {
+    const payload = {
+      filePath: filePath,
+      fileName: fileName,
+      action: 'upload',
+    };
+    await this.kafka.produce({
+      topic: 'user-upload',
+      messages: [{ value: JSON.stringify(payload) }],
+    });
+  };
+
+  getFile(fileName: string): string {
+    console.log("fileName", fileName);
+    const filePath = join(__dirname, '../', 'uploads', fileName);
+    if (!existsSync(filePath)) {
+      throw new CustomException(
+        'File not found',
+        1006,
+        {},
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    try {
+      return filePath;
+    } catch (error) {
+      throw new CustomException(
+        'Failed to read file',
+        1007,
+        error,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

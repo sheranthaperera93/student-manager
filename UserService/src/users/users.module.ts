@@ -11,9 +11,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { UsersController } from './users.controller';
 import { JobQueue } from 'src/entities/job_queue.entity';
+import { ProducerService } from 'src/kafka/producer/producer.service';
+import { KafkaModule } from 'src/kafka/kafka.module';
 
 @Module({
-  providers: [UsersResolver, UsersService],
+  providers: [UsersResolver, UsersService, ProducerService],
   imports: [
     TypeOrmModule.forFeature([User, JobQueue]),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
@@ -23,6 +25,7 @@ import { JobQueue } from 'src/entities/job_queue.entity';
       },
       plugins: [ApolloServerPluginInlineTrace()],
     }),
+    KafkaModule
   ],
   controllers: [UsersController],
 })

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       logging: true,
     }),
     UsersModule,
+    KafkaModule,
   ],
   controllers: [],
   providers: [],

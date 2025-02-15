@@ -6,11 +6,11 @@ import {
   Resolver,
   ResolveReference,
 } from '@nestjs/graphql';
-import { User } from './models/user.model';
 import { UsersService } from './users.service';
 import { UpdateUserInput } from './models/update-user.model';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { Response } from './models/response.model';
+import { User } from 'src/entities/user.entity';
 
 @Resolver((of) => User)
 export class UsersResolver {
