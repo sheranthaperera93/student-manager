@@ -89,18 +89,20 @@ export class UsersService {
     }
   }
 
-  handleUploadProcess = async (file: Express.Multer.File): Promise<{fileName: string, filePath: string}> => {
+  handleUploadProcess = async (
+    file: Express.Multer.File,
+  ): Promise<{ fileName: string; filePath: string }> => {
     const { fileName, filePath } = await this.uploadFile(file);
     console.log(fileName);
     // Insert Job details to job queue table with pending status
-    await this.createUploadJob(filePath, fileName);
+    const jobId = await this.createUploadJob(filePath, fileName);
 
     // Create Job process file
-    await this.sendUploadJob(filePath, fileName);
+    await this.sendUploadJob(filePath, fileName, jobId);
 
     // Send message to notification service to update UI layer with job status
 
-    return {filePath, fileName};
+    return { filePath, fileName };
   };
 
   async uploadFile(
@@ -130,7 +132,10 @@ export class UsersService {
     });
   }
 
-  createUploadJob = async (filePath: string, fileName: string) => {
+  createUploadJob = async (
+    filePath: string,
+    fileName: string,
+  ): Promise<number> => {
     let jobQueue = new JobQueue();
     jobQueue.createdDate = new Date();
     jobQueue.status = JOB_QUEUE_STATUS.PENDING;
@@ -139,13 +144,15 @@ export class UsersService {
       fileName,
     };
     jobQueue.jobData = JSON.stringify(tmpJobData);
-    await this.jobQueueRepository.save(jobQueue);
+    const createdJobQueue = await this.jobQueueRepository.save(jobQueue);
+    return createdJobQueue.id;
   };
 
-  sendUploadJob = async (filePath: string, fileName: string) => {
+  sendUploadJob = async (filePath: string, fileName: string, jobId: number) => {
     const payload = {
-      filePath: filePath,
-      fileName: fileName,
+      filePath,
+      fileName,
+      jobId,
       action: 'upload',
     };
     await this.kafka.produce({
@@ -155,7 +162,7 @@ export class UsersService {
   };
 
   getFile(fileName: string): string {
-    console.log("fileName", fileName);
+    console.log('fileName', fileName);
     const filePath = join(__dirname, '../', 'uploads', fileName);
     if (!existsSync(filePath)) {
       throw new CustomException(

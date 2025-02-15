@@ -1,7 +1,8 @@
 export enum JOB_QUEUE_STATUS {
   PENDING = 0,
-  SUCCESS = 2,
-  FAILED = 1,
+  IN_PROGRESS = 1,
+  SUCCESS = 3,
+  FAILED = 2,
 }
 
 export interface JobData {
