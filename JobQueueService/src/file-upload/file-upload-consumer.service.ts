@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bull';
 import { JOB_TYPES } from 'src/core/constants';
 import { ConsumerService } from 'src/kafka/consumer/consumer.service';
@@ -14,19 +14,19 @@ export class FileUploadConsumerService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    Logger.debug("File upload consumer started")
     this.consumer.consume(
       this.groupId,
-      { topics: ['user-upload'] },
+      { topics: ['user-upload-queue'], fromBeginning: true },
       {
         eachMessage: async ({ topic, partition, message }) => {
-          console.log('Kafka message received', {
+          Logger.log('Kafka message received', {
             source: this.groupId,
             message: message.value?.toString(),
             partition: partition.toString(),
             topic: topic.toString(),
           });
-          // Add job to Bull queue
-          console.log('Adding job to bull queue');
+          Logger.log('Adding job to bull queue');
           await this.jobQueue.add(
             JOB_TYPES.FILE_UPLOAD,
             {

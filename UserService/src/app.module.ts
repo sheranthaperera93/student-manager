@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from './users/users.module';
+import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { KafkaModule } from './kafka/kafka.module';
 
@@ -19,7 +19,7 @@ import { KafkaModule } from './kafka/kafka.module';
       autoLoadEntities: true,
       logging: true,
     }),
-    UsersModule,
+    UserModule,
     KafkaModule,
   ],
   controllers: [],

@@ -28,6 +28,7 @@ export class CreateJobQueue1739511385717 implements MigrationInterface {
           {
             name: 'jobCompleteDate',
             type: 'date',
+            isNullable: true
           },
         ],
       }),

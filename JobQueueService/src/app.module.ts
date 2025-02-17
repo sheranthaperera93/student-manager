@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { KafkaModule } from './kafka/kafka.module';
-import { FileProcessingModule } from './file-processing/file-processing.module';
 import { ProducerService } from './kafka/producer/producer.service';
 import { ConsumerService } from './kafka/consumer/consumer.service';
 import { QueueModule } from './queue/queue.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { FileUploadModule } from './file-upload/file-upload.module';
+import { JobQueueModule } from './job-queue/job-queue.module';
 
 @Module({
   imports: [
@@ -23,8 +24,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       logging: true,
     }),
     KafkaModule,
-    FileProcessingModule,
     QueueModule,
+    FileUploadModule,
+    JobQueueModule,
   ],
   providers: [ProducerService, ConsumerService],
 })

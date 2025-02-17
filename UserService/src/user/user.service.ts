@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { UpdateUserInput } from './models/update-user.model';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -7,17 +7,13 @@ import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { CustomException } from 'src/core/custom-exception';
-import { JobQueue } from 'src/entities/job_queue.entity';
-import { JOB_QUEUE_STATUS, JobData } from 'src/core/constants';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(JobQueue)
-    private readonly jobQueueRepository: Repository<JobQueue>,
     private readonly kafka: ProducerService,
   ) {}
 
@@ -38,7 +34,7 @@ export class UsersService {
     return { items, total };
   }
 
-  findById(id: number): Promise<User> {
+  async findById(id: number): Promise<User> {
     return this.userRepository.findOneBy({ id });
   }
 
@@ -89,21 +85,29 @@ export class UsersService {
     }
   }
 
-  handleUploadProcess = async (
+  async createBulk(userRecords: User[]) {
+    try {
+      await this.userRepository.save(userRecords);
+      return 'Users created successfully';
+    } catch (error) {
+      throw new CustomException(
+        'Bulk user creation failed',
+        1008,
+        error,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async handleUploadProcess(
     file: Express.Multer.File,
-  ): Promise<{ fileName: string; filePath: string }> => {
+  ): Promise<{ fileName: string; filePath: string }> {
+    Logger.log('Uploading file to local storage');
     const { fileName, filePath } = await this.uploadFile(file);
-    console.log(fileName);
-    // Insert Job details to job queue table with pending status
-    const jobId = await this.createUploadJob(filePath, fileName);
 
-    // Create Job process file
-    await this.sendUploadJob(filePath, fileName, jobId);
-
-    // Send message to notification service to update UI layer with job status
-
+    await this.sendUploadJob(filePath, fileName);
     return { filePath, fileName };
-  };
+  }
 
   async uploadFile(
     file: Express.Multer.File,
@@ -132,37 +136,24 @@ export class UsersService {
     });
   }
 
-  createUploadJob = async (
-    filePath: string,
-    fileName: string,
-  ): Promise<number> => {
-    let jobQueue = new JobQueue();
-    jobQueue.createdDate = new Date();
-    jobQueue.status = JOB_QUEUE_STATUS.PENDING;
-    let tmpJobData: JobData = {
-      filePath,
-      fileName,
-    };
-    jobQueue.jobData = JSON.stringify(tmpJobData);
-    const createdJobQueue = await this.jobQueueRepository.save(jobQueue);
-    return createdJobQueue.id;
-  };
-
-  sendUploadJob = async (filePath: string, fileName: string, jobId: number) => {
+  async sendUploadJob(filePath: string, fileName: string) {
     const payload = {
       filePath,
       fileName,
-      jobId,
       action: 'upload',
     };
+    Logger.log(
+      'Sending upload job details to job queue service with payload',
+      payload,
+    );
     await this.kafka.produce({
-      topic: 'user-upload',
-      messages: [{ value: JSON.stringify(payload) }],
+      topic: 'user-upload-queue',
+      messages: [{ key: 'bulk-insert', value: JSON.stringify(payload) }],
     });
-  };
+  }
 
   getFile(fileName: string): string {
-    console.log('fileName', fileName);
+    Logger.log('fileName', fileName);
     const filePath = join(__dirname, '../', 'uploads', fileName);
     if (!existsSync(filePath)) {
       throw new CustomException(
@@ -172,15 +163,6 @@ export class UsersService {
         HttpStatus.NOT_FOUND,
       );
     }
-    try {
-      return filePath;
-    } catch (error) {
-      throw new CustomException(
-        'Failed to read file',
-        1007,
-        error,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return filePath;
   }
 }

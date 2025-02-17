@@ -9,7 +9,7 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: {
       host: '127.0.0.1',
-      port: 3001,
+      port: 3006,
     },
   });
   // Create KAFKA Connection for Message Broker
@@ -22,6 +22,7 @@ async function bootstrap() {
       },
       consumer: {
         groupId: 'job-queue-group',
+        sessionTimeout: 30000, // Increase session timeout to 30 seconds
       },
     },
   });

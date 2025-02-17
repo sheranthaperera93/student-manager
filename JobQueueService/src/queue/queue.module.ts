@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { QueueProcessor } from './queue.processor';
-import { FileUploadService } from 'src/file-processing/file-upload/file-upload.service';
+import { FileUploadService } from 'src/file-upload/file-upload.service';
 import { JobQueue } from 'src/entities/job_queue.entity';
+import { ProducerService } from 'src/kafka/producer/producer.service';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { JobQueue } from 'src/entities/job_queue.entity';
     }),
     TypeOrmModule.forFeature([JobQueue]),
   ],
-  providers: [QueueProcessor, FileUploadService],
+  providers: [QueueProcessor, FileUploadService, ProducerService],
   exports: [QueueProcessor, BullModule],
 })
 export class QueueModule {}

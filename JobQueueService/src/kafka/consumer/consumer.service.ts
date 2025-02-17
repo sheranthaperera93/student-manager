@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import {
   Consumer,
   ConsumerRunConfig,
@@ -19,7 +19,7 @@ export class ConsumerService implements OnApplicationShutdown {
     for (const consumer of this.consumers) {
       await consumer
         .disconnect()
-        .catch((e) => console.error('Error disconnecting consumer', e));
+        .catch((e) => Logger.error('Error disconnecting consumer', e));
     }
   }
 
@@ -29,7 +29,10 @@ export class ConsumerService implements OnApplicationShutdown {
     config: ConsumerRunConfig,
   ) {
     const consumer: Consumer = this.kafka.consumer({ groupId });
-    await consumer.connect().catch(e => console.error(e));
+    await consumer
+      .connect()
+      .then(() => Logger.debug('Consumer connected successfully'))
+      .catch((e) => Logger.error(e));
     await consumer.subscribe(topics);
     await consumer.run(config);
     this.consumers.push(consumer);

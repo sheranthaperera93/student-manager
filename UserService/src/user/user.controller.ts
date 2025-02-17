@@ -8,13 +8,13 @@ import {
   Res,
 } from '@nestjs/common';
 import { Response } from './models/response.model';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response as ExpressResponse } from 'express';
 
 @Controller('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+export class UserController {
+  constructor(private readonly usersService: UserService) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
