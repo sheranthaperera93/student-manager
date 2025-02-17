@@ -8,12 +8,15 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Field()
   @Column()
   name: string;
 
+  @Field()
   @Column()
   email: string;
 
+  @Field()
   @Column()
   date_of_birth: Date;
 }

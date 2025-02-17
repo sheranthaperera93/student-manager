@@ -23,6 +23,7 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 import { ListViewModule } from '@progress/kendo-angular-listview';
+import { NotificationModule } from '@progress/kendo-angular-notification';
 
 import { StudentService } from './services/student.service';
 import { ConfirmationDialogComponent } from './shared/confirmation-dialog/confirmation-dialog.component';
@@ -35,6 +36,7 @@ import { JobItemCardComponent } from './shared/job-item-card/job-item-card.compo
 import { StudentListComponent } from './student-list/student-list.component';
 import { ExportPopupComponent } from './shared/export-popup/export-popup.component';
 import { GraphQLModule } from './core/graphql/graphql.module';
+import { SocketService } from './services/socket.service';
 
 @NgModule({
   declarations: [
@@ -70,8 +72,9 @@ import { GraphQLModule } from './core/graphql/graphql.module';
     ListViewModule,
     AvatarModule,
     GraphQLModule,
+    NotificationModule
   ],
-  providers: [provideHttpClient(withInterceptorsFromDi()), StudentService],
+  providers: [provideHttpClient(withInterceptorsFromDi()), StudentService, SocketService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JOB_QUEUE_STATUS } from 'src/core/constants';
+import { JOB_QUEUE_STATUS, JOB_TYPE, JobData } from 'src/core/constants';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { Repository } from 'typeorm';
 
@@ -10,6 +10,32 @@ export class JobQueueService {
     @InjectRepository(JobQueue)
     private readonly jobQueueRepository: Repository<JobQueue>,
   ) {}
+
+  /**
+   * Creates a new upload job and saves it to the job queue repository.
+   *
+   * @param filePath - The path of the file to be uploaded.
+   * @param fileName - The name of the file to be uploaded.
+   * @param type     - The type of the job (1 = UPLOADS, 2 = EXPORTS)
+   * @returns A promise that resolves to the created JobQueue object.
+   */
+  createUploadJob = async (
+    filePath: string,
+    fileName: string,
+    type: JOB_TYPE,
+  ): Promise<JobQueue> => {
+    let jobQueue = new JobQueue();
+    jobQueue.createdDate = new Date();
+    jobQueue.status = JOB_QUEUE_STATUS.PENDING;
+    let tmpJobData: JobData = {
+      filePath,
+      fileName,
+    };
+    jobQueue.type = type;
+    jobQueue.jobData = JSON.stringify(tmpJobData);
+    Logger.log('Inserting job queue item to DB');
+    return await this.jobQueueRepository.save(jobQueue);
+  };
 
   /**
    * Updates the status of a job in the job queue.
@@ -32,24 +58,28 @@ export class JobQueueService {
    *
    * @throws {Error} If the message cannot be parsed or if the job queue repository operations fail.
    */
-  async updateJobStatus(message: string) {
-    const { jobId, status } = JSON.parse(message);
-    const jobItem = await this.jobQueueRepository.findOneBy({ id: jobId });
+  async updateJobStatus(message: string): Promise<void> {
+    const { job, status } = JSON.parse(message);
+    const jobItem = await this.jobQueueRepository.findOneBy({ id: job.id });
     if (jobItem && status === JOB_QUEUE_STATUS.SUCCESS) {
       this.jobQueueRepository.update(
-        { id: jobId },
+        { id: job.id },
         { jobCompleteDate: new Date(), status: JOB_QUEUE_STATUS.SUCCESS },
       );
     } else if (jobItem && status === JOB_QUEUE_STATUS.FAILED) {
       this.jobQueueRepository.update(
-        { id: jobId },
+        { id: job.id },
         { jobCompleteDate: new Date(), status: JOB_QUEUE_STATUS.FAILED },
       );
     } else {
       Logger.error('Failed to update job status. Invalid JOB ID : ', {
-        jobId,
+        jobId: job.id,
         status,
       });
     }
+  }
+
+  async findAll(): Promise<JobQueue[]> {
+    return await this.jobQueueRepository.find();
   }
 }

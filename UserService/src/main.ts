@@ -13,7 +13,7 @@ async function bootstrap() {
     options: {
       client: {
         clientId: 'nestjs-consumer-server',
-        brokers: ['host.docker.internal:9092'],
+        brokers: ['localhost:9092'],
       },
       consumer: {
         groupId: 'job-queue-group',

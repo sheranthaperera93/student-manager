@@ -47,17 +47,17 @@ export class UserConsumerService implements OnModuleInit {
    * Handles the user upload data by parsing the message, creating user records in bulk,
    * and sending event messages based on the success or failure of the operation.
    *
-   * @param {string} message - The message containing user records and job ID in JSON format.
+   * @param {string} message - The message containing user records and job in JSON format.
    * @returns {Promise<void>} - A promise that resolves when the operation is complete.
    *
    * @throws {Error} - Throws an error if the JSON parsing or user record creation fails.
    */
   async handleUserUploadData(message: string) {
-    const { records, jobId } = JSON.parse(message);
+    const { records, job } = JSON.parse(message);
     try {
       await this.userService.createBulk(records);
       const payload = {
-        jobId: jobId,
+        job: job,
         status: JOB_QUEUE_STATUS.SUCCESS,
         action: 'update-job-status',
       };
@@ -67,7 +67,7 @@ export class UserConsumerService implements OnModuleInit {
         error,
       });
       const payload = {
-        jobId: jobId,
+        job: job,
         status: JOB_QUEUE_STATUS.FAILED,
         action: 'update-job-status',
       };

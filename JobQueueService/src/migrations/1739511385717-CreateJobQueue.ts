@@ -22,6 +22,10 @@ export class CreateJobQueue1739511385717 implements MigrationInterface {
             type: 'int',
           },
           {
+            name: 'type',
+            type: 'int',
+          },
+          {
             name: 'createdDate',
             type: 'date',
           },

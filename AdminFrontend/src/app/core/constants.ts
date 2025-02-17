@@ -10,6 +10,12 @@ export enum JOB_STATUS {
   PENDING = 'pending',
 }
 
+export enum JOB_QUEUE_STATUS {
+  PENDING = 0,
+  SUCCESS = 1,
+  FAILED = 2,
+}
+
 export interface ExportParameters {
   ageRange: [number, number];
 }
@@ -17,4 +23,4 @@ export interface ExportParameters {
 export enum JOB_TYPES {
   UPLOAD = 'upload',
   EXPORT = 'export',
-};
+}

@@ -36,6 +36,7 @@
     "@progress/kendo-angular-layout": "18.0.0",
     "@progress/kendo-angular-listview": "^18.0.0",
     "@progress/kendo-angular-navigation": "18.0.0",
+    "@progress/kendo-angular-notification": "^18.0.0",
     "@progress/kendo-angular-pager": "18.0.0",
     "@progress/kendo-angular-pdf-export": "18.0.0",
     "@progress/kendo-angular-popup": "18.0.0",
@@ -55,6 +56,7 @@
     "extract-files": "^13.0.0",
     "graphql": "^16.10.0",
     "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.1",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },

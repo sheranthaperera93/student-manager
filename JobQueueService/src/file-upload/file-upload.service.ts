@@ -3,8 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
-import { JOB_QUEUE_STATUS, JobData, User } from 'src/core/constants';
+import { JOB_QUEUE_STATUS, JOB_TYPE, JobData, User } from 'src/core/constants';
 import { JobQueue } from 'src/entities/job_queue.entity';
+import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 import { Repository } from 'typeorm';
 import * as xlsx from 'xlsx';
@@ -15,6 +16,7 @@ export class FileUploadService {
     @InjectRepository(JobQueue)
     private readonly jobQueueRepository: Repository<JobQueue>,
     private readonly kafka: ProducerService,
+    private readonly jobQueueService: JobQueueService,
   ) {}
 
   /**
@@ -37,7 +39,7 @@ export class FileUploadService {
   handleFileUpload = async (message: string) => {
     try {
       const { fileName, filePath } = JSON.parse(message);
-      const jobQueue = await this.createUploadJob(filePath, fileName);
+      const jobQueue = await this.jobQueueService.createUploadJob(filePath, fileName, JOB_TYPE.UPLOADS);
       const response = await axios.get(
         `http://localhost:3002/api/users/upload/${fileName}`,
         { responseType: 'arraybuffer' },
@@ -58,28 +60,7 @@ export class FileUploadService {
     }
   };
 
-  /**
-   * Creates a new upload job and saves it to the job queue repository.
-   *
-   * @param filePath - The path of the file to be uploaded.
-   * @param fileName - The name of the file to be uploaded.
-   * @returns A promise that resolves to the created JobQueue object.
-   */
-  createUploadJob = async (
-    filePath: string,
-    fileName: string,
-  ): Promise<JobQueue> => {
-    let jobQueue = new JobQueue();
-    jobQueue.createdDate = new Date();
-    jobQueue.status = JOB_QUEUE_STATUS.PENDING;
-    let tmpJobData: JobData = {
-      filePath,
-      fileName,
-    };
-    jobQueue.jobData = JSON.stringify(tmpJobData);
-    Logger.log("Inserting job queue item to DB")
-    return await this.jobQueueRepository.save(jobQueue);
-  };
+
 
   /**
    * Updates the status of a job in the job queue.
@@ -158,7 +139,7 @@ export class FileUploadService {
   sendUploadData = async (records: User[], jobInfo: JobQueue) => {
     await this.kafka.produce({
       topic: 'user-upload-data',
-      messages: [{ value: JSON.stringify({ records, jobId: jobInfo.id }) }],
+      messages: [{ value: JSON.stringify({ records, job: jobInfo }) }],
     });
   };
 }

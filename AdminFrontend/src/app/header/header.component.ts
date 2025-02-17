@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FileInfo } from '@progress/kendo-angular-upload';
 import { bellIcon, SVGIcon, uploadIcon } from '@progress/kendo-svg-icons';
-import { JOB_STATUS, JOB_TYPES } from '../core/constants';
+import { JOB_QUEUE_STATUS, JOB_STATUS, JOB_TYPES } from '../core/constants';
 import { Notification } from '../model/notification.model';
 import { NotificationService } from '../services/notification.service';
 import { StudentService } from '../services/student.service';
+import { SocketService } from '../services/socket.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -12,14 +14,16 @@ import { StudentService } from '../services/student.service';
   standalone: false,
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy {
   public isUploadDialogVisible = false;
   public bellIcon: SVGIcon = bellIcon;
   public menuIcon: SVGIcon = uploadIcon;
   public showNotificationPopup = false;
   public hasFailedJobs: boolean = false;
 
-  jobQueue: Notification[] = [
+  private readonly messageSubscription: Subscription;
+
+  public jobQueue: Notification[] = [
     {
       id: 1,
       name: 'Success',
@@ -52,8 +56,37 @@ export class HeaderComponent {
 
   constructor(
     private readonly notificationService: NotificationService,
-    private readonly studentService: StudentService
-  ) {}
+    private readonly studentService: StudentService,
+    private readonly socketService: SocketService
+  ) {
+    this.messageSubscription = this.socketService
+      .on('message')
+      .subscribe((data) => {
+        if (data.status === JOB_QUEUE_STATUS.SUCCESS) {
+          const job = data.job;
+        }
+        if (data.status === JOB_QUEUE_STATUS.FAILED) {
+          const job = data.job;
+        }
+      });
+  }
+
+  ngOnInit(): void {
+    this.fetchJobQueues();
+  }
+
+  ngOnDestroy(): void {
+    this.messageSubscription.unsubscribe();
+  }
+
+  fetchJobQueues() {
+    console.log("asadasd")
+    this.notificationService.getJobQueueItems().subscribe({
+      next: (data) => {
+        this.jobQueue = data;
+      },
+    });
+  }
 
   /**
    * Opens the upload dialog by setting the visibility flag to true.
@@ -81,9 +114,17 @@ export class HeaderComponent {
       this.studentService.uploadFile(file.rawFile as File).subscribe({
         next: (result) => {
           console.log('File upload successful', result);
+          this.notificationService.showNotification(
+            'success',
+            'Upload job created successfully'
+          );
         },
         error: (error) => {
           console.error('File upload failed', error);
+          this.notificationService.showNotification(
+            'error',
+            'Failed to create student upload job. Please try again later.'
+          );
         },
         complete: () => {
           this.isUploadDialogVisible = false;

@@ -5,6 +5,7 @@ import { QueueProcessor } from './queue.processor';
 import { FileUploadService } from 'src/file-upload/file-upload.service';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { ProducerService } from 'src/kafka/producer/producer.service';
+import { JobQueueService } from 'src/job-queue/job-queue.service';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { ProducerService } from 'src/kafka/producer/producer.service';
     }),
     TypeOrmModule.forFeature([JobQueue]),
   ],
-  providers: [QueueProcessor, FileUploadService, ProducerService],
+  providers: [QueueProcessor, FileUploadService, ProducerService, JobQueueService],
   exports: [QueueProcessor, BullModule],
 })
 export class QueueModule {}

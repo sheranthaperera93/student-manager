@@ -4,6 +4,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
   // Create TCP Connection for Bull and Redis
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,

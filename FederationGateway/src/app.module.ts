@@ -11,7 +11,7 @@ import { GraphQLModule } from '@nestjs/graphql';
         supergraphSdl: new IntrospectAndCompose({
           subgraphs: [
             { name: 'users', url: 'http://localhost:3002/graphql' },
-            // { name: 'notifications', url: 'http://localhost:3003/graphql' },
+            { name: 'jobqueue', url: 'http://localhost:3006/graphql' },
           ],
         }),
       },
