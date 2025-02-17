@@ -8,7 +8,7 @@ import { Kafka, Producer, ProducerRecord } from 'kafkajs';
 @Injectable()
 export class ProducerService implements OnModuleInit, OnApplicationShutdown {
   private readonly kafka = new Kafka({
-    brokers: ['localhost:9092'],
+    brokers: ['host.docker.internal:9092'],
     clientId: 'nestjs-consumer-server',
   });
 

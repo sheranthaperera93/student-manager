@@ -24,11 +24,11 @@ export class FileUploadConsumerService implements OnModuleInit {
    * @method onModuleInit
    * @returns {Promise<void>} A promise that resolves when the consumer is started and the jobs are added to the queue.
    */
-  async onModuleInit() {
-    Logger.debug("File upload consumer started")
-    this.consumer.consume(
+  async onModuleInit(): Promise<void> {
+    Logger.log("starting consumer for file upload");
+    await this.consumer.consume(
       this.groupId,
-      { topics: ['user-upload-queue'], fromBeginning: true },
+      { topics: ['user-upload-queue']},
       {
         eachMessage: async ({ topic, partition, message }) => {
           Logger.log('Kafka message received', {

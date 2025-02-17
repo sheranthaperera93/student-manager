@@ -13,18 +13,17 @@ export class JobQueueConsumerService {
 
   /**
    * Initializes the job queue consumer when the module is initialized.
-   * 
+   *
    * This method is called automatically by the framework when the module is initialized.
    * It starts the Kafka consumer to listen for messages on the 'job-queue-actions' topic
    * from the beginning. For each received message, it logs the message details and updates
    * the job status using the jobQueueService.
-   * 
+   *
    * @async
    * @returns {Promise<void>} A promise that resolves when the consumer is successfully started.
    */
-  async onModuleInit() {
-    Logger.debug('Job queue consumer started')
-    this.consumer.consume(
+  async onModuleInit(): Promise<void> {
+    await this.consumer.consume(
       this.groupId,
       { topics: ['job-queue-actions'], fromBeginning: true },
       {
