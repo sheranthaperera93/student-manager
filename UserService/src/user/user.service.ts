@@ -17,6 +17,14 @@ export class UserService {
     private readonly kafka: ProducerService,
   ) {}
 
+  /**
+   * Retrieves a paginated list of users.
+   *
+   * @param {Object} params - The parameters for pagination.
+   * @param {number} [params.skip] - The number of records to skip.
+   * @param {number} [params.take] - The number of records to take.
+   * @returns {Promise<PaginatedUsers>} A promise that resolves to a paginated list of users.
+   */
   async findAll({
     skip,
     take,
@@ -34,10 +42,24 @@ export class UserService {
     return { items, total };
   }
 
+  /**
+   * Finds a user by their unique identifier.
+   *
+   * @param id - The unique identifier of the user.
+   * @returns A promise that resolves to the user with the given id.
+   */
   async findById(id: number): Promise<User> {
     return this.userRepository.findOneBy({ id });
   }
 
+  /**
+   * Updates a user with the given ID using the provided updateUserInput.
+   *
+   * @param {number} id - The ID of the user to update.
+   * @param {UpdateUserInput} updateUserInput - The input data to update the user with.
+   * @returns {Promise<string>} - A promise that resolves to a success message if the update is successful.
+   * @throws {CustomException} - Throws an exception if the user is not found or if the update fails.
+   */
   async update(id: number, updateUserInput: UpdateUserInput): Promise<string> {
     try {
       const user = await this.findById(id);
@@ -62,6 +84,13 @@ export class UserService {
     }
   }
 
+  /**
+   * Deletes a user by their ID.
+   *
+   * @param {number} id - The ID of the user to delete.
+   * @returns {Promise<string>} A promise that resolves to a success message if the user is deleted.
+   * @throws {CustomException} If the user is not found or if the deletion fails.
+   */
   async delete(id: number): Promise<string> {
     try {
       const user = await this.findById(id);
@@ -85,6 +114,13 @@ export class UserService {
     }
   }
 
+  /**
+   * Creates multiple user records in bulk.
+   *
+   * @param {User[]} userRecords - An array of user records to be created.
+   * @returns {Promise<string>} A promise that resolves to a success message if the users are created successfully.
+   * @throws {CustomException} Throws a CustomException if the bulk user creation fails.
+   */
   async createBulk(userRecords: User[]) {
     try {
       await this.userRepository.save(userRecords);
@@ -99,6 +135,12 @@ export class UserService {
     }
   }
 
+  /**
+   * Handles the process of uploading a file.
+   *
+   * @param file - The file to be uploaded.
+   * @returns A promise that resolves to an object containing the file name and file path.
+   */
   async handleUploadProcess(
     file: Express.Multer.File,
   ): Promise<{ fileName: string; filePath: string }> {
@@ -109,6 +151,13 @@ export class UserService {
     return { filePath, fileName };
   }
 
+  /**
+   * Uploads a file to the server.
+   *
+   * @param {Express.Multer.File} file - The file to be uploaded.
+   * @returns {Promise<{ fileName: string; filePath: string }>} A promise that resolves with the file name and file path.
+   * @throws {CustomException} Throws a custom exception if the file upload fails.
+   */
   async uploadFile(
     file: Express.Multer.File,
   ): Promise<{ fileName: string; filePath: string }> {
@@ -136,6 +185,13 @@ export class UserService {
     });
   }
 
+  /**
+   * Sends an upload job to the job queue service.
+   *
+   * @param filePath - The path of the file to be uploaded.
+   * @param fileName - The name of the file to be uploaded.
+   * @returns A promise that resolves when the job has been sent to the queue.
+   */
   async sendUploadJob(filePath: string, fileName: string) {
     const payload = {
       filePath,
@@ -152,6 +208,13 @@ export class UserService {
     });
   }
 
+  /**
+   * Retrieves the file path for a given file name.
+   * 
+   * @param fileName - The name of the file to retrieve.
+   * @returns The file path of the requested file.
+   * @throws CustomException if the file does not exist.
+   */
   getFile(fileName: string): string {
     Logger.log('fileName', fileName);
     const filePath = join(__dirname, '../', 'uploads', fileName);
