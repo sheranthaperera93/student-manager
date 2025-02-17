@@ -30,10 +30,7 @@ export class ConsumerService implements OnApplicationShutdown {
     config: ConsumerRunConfig,
   ) {
     const consumer: Consumer = this.kafka.consumer({ groupId });
-    await consumer
-      .connect()
-      .then(() => Logger.debug('Consumer connected successfully'))
-      .catch((e) => Logger.error(e));
+    await consumer.connect().catch((e) => Logger.error(e));
     await consumer.subscribe(topics);
     await consumer.run(config);
     this.consumers.push(consumer);
