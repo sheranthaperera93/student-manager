@@ -13,6 +13,17 @@ export class FileUploadConsumerService implements OnModuleInit {
     @InjectQueue('bull-queue') private readonly jobQueue: Queue,
   ) {}
 
+  /**
+   * Initializes the module and starts the file upload consumer.
+   * 
+   * This method is called when the module is initialized. It starts the Kafka consumer
+   * to listen to the 'user-upload-queue' topic from the beginning. For each message received,
+   * it logs the message details and adds a job to the Bull queue for file upload processing.
+   * 
+   * @async
+   * @method onModuleInit
+   * @returns {Promise<void>} A promise that resolves when the consumer is started and the jobs are added to the queue.
+   */
   async onModuleInit() {
     Logger.debug("File upload consumer started")
     this.consumer.consume(
