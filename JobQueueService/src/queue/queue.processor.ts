@@ -13,8 +13,14 @@ export class QueueProcessor {
   ) {}
 
   @Process(JOB_TYPES.FILE_UPLOAD)
-  async handleJob(job: Job<JobItem>) {
-    console.log('Processing Bull JS job:', job.data);
-    this.fileUploadService.handleFileUpload(job.data['message']);
+  async handleUploadJob(job: Job<JobItem>) {
+    console.log('Processing Bull JS upload job:', job.data);
+    this.fileUploadService.handleFileUpload(job.data.message);
+  }
+
+  @Process(JOB_TYPES.FILE_UPLOAD_RETRY)
+  async handleReTryJob(job: Job<JobItem>) {
+    console.log('Processing Bull JS retry job:', job.data);
+      this.fileUploadService.retryJobQueueItem(job.data.message);
   }
 }

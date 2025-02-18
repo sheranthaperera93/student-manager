@@ -23,27 +23,10 @@ export class FileUploadService {
     private readonly jobQueueService: JobQueueService,
   ) {}
 
-  /**
-   * Handles the file upload process.
-   *
-   * @param {string} message - The message containing file details in JSON format.
-   * @returns {Promise<void>} - A promise that resolves when the file upload process is complete.
-   *
-   * @throws {Error} - Throws an error if there is an issue processing the file upload.
-   *
-   * The function performs the following steps:
-   * 1. Parses the message to extract file details.
-   * 2. Creates an upload job in the job queue.
-   * 3. Downloads the file from a specified URL.
-   * 4. Saves the file temporarily to the local filesystem.
-   * 5. Extracts content from the Excel file.
-   * 6. Deletes the temporary file.
-   * 7. Sends the extracted data for further processing.
-   */
   handleFileUpload = async (message: string) => {
     try {
       const { fileName, filePath } = JSON.parse(message);
-      const jobQueue = await this.jobQueueService.createUploadJob(
+      const jobItem = await this.jobQueueService.createUploadJob(
         filePath,
         fileName,
         JOB_TYPE.UPLOADS,
@@ -64,10 +47,36 @@ export class FileUploadService {
       fs.unlinkSync(tmpFilePath);
       Logger.log('Insert records to database');
       await this.userRepository.save(records);
-      await this.notifyJobUpdate(jobQueue);
+      await this.notifyJobUpdate(jobItem);
     } catch (error) {
       Logger.error('Error processing file upload: ', error);
     }
+  };
+
+  retryJobQueueItem = async (message: string) => {
+    const { jobId } = JSON.parse(message);
+    const jobItem = await this.jobQueueRepository.findOneBy({ id: jobId });
+    if (!jobItem) {
+      throw new Error('No Job Found for ID: ' + jobId);
+    }
+    const { fileName } = JSON.parse(jobItem.jobData);
+    const response = await axios.get(
+      `http://localhost:3002/api/users/upload/${fileName}`,
+      { responseType: 'arraybuffer' },
+    );
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const tmpFilePath = path.join(__dirname, 'uploads', fileName);
+    fs.writeFileSync(tmpFilePath, response.data);
+    Logger.log(`File temporary saved to ${tmpFilePath}`);
+    const records: BulkUser[] = this.extractExcelContent(tmpFilePath);
+    Logger.log('File deleted from temporary location');
+    fs.unlinkSync(tmpFilePath);
+    Logger.log('Insert records to database');
+    await this.userRepository.save(records);
+    await this.notifyJobUpdate(jobItem);
   };
 
   /**

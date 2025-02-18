@@ -11,6 +11,7 @@ import {
 } from '@nestjs/apollo';
 import { JobQueueResolver } from './job-queue.resolver';
 import { User } from 'src/entities/user.entity';
+import { QueueModule } from 'src/queue/queue.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { User } from 'src/entities/user.entity';
       plugins: [ApolloServerPluginInlineTrace()],
     }),
     KafkaModule,
+    QueueModule
   ],
   providers: [JobQueueResolver, JobQueueService],
 })

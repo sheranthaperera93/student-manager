@@ -97,4 +97,24 @@ export class NotificationService {
 
     this.notificationService.show(state);
   }
+
+  retryJobQueueItem = (jobId: number) => {
+    return this.apollo
+      .mutate({
+        mutation: gql`
+          mutation retryJobQueueItem($id: ID!) {
+            retryJobQueueItem(id: $id)
+          }
+        `,
+        variables: {
+          id: jobId,
+        },
+      })
+      .pipe(
+        map((result: any) => ({
+          message: result.data.retryJobQueueItem,
+          data: {},
+        }))
+      );
+  };
 }

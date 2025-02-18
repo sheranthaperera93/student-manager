@@ -1,6 +1,13 @@
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JOB_QUEUE_STATUS, JOB_TYPE, JobData } from 'src/core/constants';
+import { Queue } from 'bull';
+import {
+  JOB_QUEUE_STATUS,
+  JOB_TYPE,
+  JOB_TYPES,
+  JobData,
+} from 'src/core/constants';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { Repository } from 'typeorm';
 
@@ -9,6 +16,7 @@ export class JobQueueService {
   constructor(
     @InjectRepository(JobQueue)
     private readonly jobQueueRepository: Repository<JobQueue>,
+    @InjectQueue('bull-queue') private readonly jobQueue: Queue,
   ) {}
 
   createUploadJob = async (
@@ -49,6 +57,36 @@ export class JobQueueService {
   }
 
   async findAll(): Promise<JobQueue[]> {
-    return await this.jobQueueRepository.find();
+    const jobs = await this.jobQueueRepository.find();
+    return jobs.map((job) => ({
+      ...job,
+      jobCompleteDate: job.jobCompleteDate || new Date(),
+    }));
+  }
+
+  async retryJobQueueItem(jobId: number): Promise<string> {
+    const jobItem = await this.jobQueueRepository.findOneBy({ id: jobId });
+    if (jobItem && jobItem.status !== JOB_QUEUE_STATUS.FAILED) {
+      Logger.error(
+        'Failed to re-try job. Job either not found or already completed',
+        {
+          jobId,
+        },
+      );
+      throw new Error('Failed to re-try job. Job either not found or already completed');
+    }
+    Logger.log('Adding retry job to bull queue');
+    await this.jobQueue.add(
+      JOB_TYPES.FILE_UPLOAD_RETRY,
+      {
+        type: JOB_TYPES.FILE_UPLOAD_RETRY,
+        message: JSON.stringify({ jobId }),
+      },
+      {
+        attempts: 3,
+        backoff: 5000,
+      },
+    );
+    return 'Re-try job created';
   }
 }

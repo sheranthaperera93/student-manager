@@ -1,4 +1,4 @@
-import { Query, Resolver } from '@nestjs/graphql';
+import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { JobQueueService } from './job-queue.service';
 
@@ -9,5 +9,12 @@ export class JobQueueResolver {
   @Query((returns) => [JobQueue])
   async getJobQueueItems(): Promise<JobQueue[]> {
     return this.jobQueueService.findAll();
+  }
+
+  @Mutation((returns) => String)
+  async retryJobQueueItem(
+    @Args({ name: 'id', type: () => ID }) id: number,
+  ): Promise<string> {
+    return await this.jobQueueService.retryJobQueueItem(id);
   }
 }

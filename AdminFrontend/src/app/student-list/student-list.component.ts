@@ -56,6 +56,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
   private readonly stateChange = new BehaviorSubject<State>(this.pageState);
   private reloadListSubscription: Subscription = new Subscription();
   students$!: Observable<GridDataResult>;
+  private deleteSubscription: Subscription = new Subscription();
+  private updateSubscription: Subscription = new Subscription();
 
   constructor(
     public readonly studentService: StudentService,
@@ -84,6 +86,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.reloadListSubscription.unsubscribe();
+    if (this.updateSubscription) this.updateSubscription.unsubscribe();
+    if (this.deleteSubscription) this.deleteSubscription.unsubscribe();
   }
 
   public pageChange(state: PageChangeEvent): void {
@@ -143,7 +147,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
           userInfo.editForm.controls['dateOfBirth'].value;
         updateData.email = userInfo.editForm.controls['email'].value;
 
-        this.studentService
+        this.updateSubscription = this.studentService
           .updateStudent(student.id, updateData)
           .subscribe((response: Response) => {
             this.pageState.skip = 0;
@@ -173,7 +177,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
     dialogRef.result.subscribe((result: DialogResult) => {
       if (!(result instanceof DialogCloseResult) && result.text == 'Yes') {
-        this.studentService
+        this.deleteSubscription = this.studentService
           .deleteStudent(student.id)
           .subscribe((response: Response) => {
             this.pageState.skip = 0;

@@ -24,7 +24,7 @@ export class JobQueue {
   @Column('date')
   createdDate: Date;
 
-  @Field()
+  @Field({ nullable: true })
   @Column('date', { nullable: true })
   jobCompleteDate: Date;
 }

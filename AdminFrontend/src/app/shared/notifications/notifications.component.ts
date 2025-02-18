@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { Notification } from '../../model/notification.model';
 import { NotificationService } from '../../services/notification.service';
+import { JOB_STATUS, JOB_TYPES } from '../../core/constants';
 
 @Component({
   selector: 'app-notifications',
@@ -10,18 +11,26 @@ import { NotificationService } from '../../services/notification.service';
 })
 export class NotificationsComponent {
   @Input() items: Notification[] = [];
-  @Input() title: string = "";
+  @Input() title: string = '';
 
   constructor(private readonly notificationService: NotificationService) {}
 
   /**
-   * Handles the action triggered by a notification.
+   * Handles the item triggered by a notification.
    *
-   * @param {Notification} action - The notification action to be handled.
+   * @param {Notification} item - The notification action to be handled.
    * @returns {void}
    */
-  onActionHandler(action: Notification): void {
-    console.log(action);
+  onActionHandler(item: Notification): void {
+    console.log(item);
+    if (item.status === JOB_STATUS.FAILED && item.type === JOB_TYPES.UPLOAD) {
+      this.notificationService.retryJobQueueItem(item.id).subscribe(() => {
+        this.notificationService.showNotification(
+          'success',
+          'Re-try job initiated successfully'
+        );
+      });
+    }
   }
 
   /**
