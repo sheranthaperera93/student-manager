@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Notification } from '../model/notification.model';
-import { JOB_STATUS } from '../core/constants';
+import { JOB_STATUS, JobQueueItem } from '../core/constants';
 import gql from 'graphql-tag';
 import {
   NotificationService as KNotificationService,
@@ -18,15 +18,16 @@ export class NotificationService {
     private readonly apollo: Apollo
   ) {}
 
-  getJobQueueItems = (): Observable<Notification[]> => {
+  getJobQueueItems = (): Observable<JobQueueItem[]> => {
     return this.apollo
-      .watchQuery<{ getJobQueueItems: Notification[] }>({
+      .watchQuery<{ getJobQueueItems: JobQueueItem[] }>({
         query: gql`
           query getJobQueueItems {
             getJobQueueItems {
               id
               jobData
               status
+              type
               createdDate
               jobCompleteDate
             }

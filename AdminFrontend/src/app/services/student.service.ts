@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import gql from 'graphql-tag';
 import { State } from '@progress/kendo-data-query';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GridDataResult } from '@progress/kendo-angular-grid';
 import { UpdateStudent } from '../model/student.model';
@@ -13,6 +13,8 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class StudentService {
+  public readonly refreshStudentList: Subject<string> = new Subject<string>();
+
   constructor(
     private readonly apollo: Apollo,
     private readonly http: HttpClient

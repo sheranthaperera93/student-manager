@@ -4,7 +4,7 @@ import { EventsGateway } from './events.gateway';
 
 @Injectable()
 export class EventsConsumerService implements OnModuleInit {
-  groupId: string = 'job-queue-group';
+  groupId: string = 'event-queue-group';
 
   constructor(
     private readonly consumer: ConsumerService,
@@ -12,7 +12,6 @@ export class EventsConsumerService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    Logger.debug('User upload data consumer started');
     this.consumer.consume(
       this.groupId,
       { topics: ['notifications'], fromBeginning: true },

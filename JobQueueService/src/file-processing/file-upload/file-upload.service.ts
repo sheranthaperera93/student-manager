@@ -86,6 +86,9 @@ export class FileUploadService {
       throw new Error('No Job Found for ID: ' + jobId);
     }
     jobQueueRecord.status = status;
+    if (status === JOB_QUEUE_STATUS.SUCCESS) {
+      jobQueueRecord.jobCompleteDate = new Date();
+    }
     await this.jobQueueRepository.save(jobQueueRecord);
   };
 
@@ -112,13 +115,14 @@ export class FileUploadService {
     const workbook = xlsx.readFile(filePath);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-    const records: BulkUser[] = jsonData.slice(0).map((row: any) => {
-      return {
+    const records: BulkUser[] = jsonData
+      .filter((array: any) => array.length > 0)
+      .slice(0)
+      .map((row: any) => ({
         name: row[0],
         email: row[1],
         date_of_birth: this.convertExcelDate(row[2]),
-      };
-    });
+      }));
     Logger.log('Records created', records);
     return records;
   }
@@ -151,19 +155,23 @@ export class FileUploadService {
         status: JOB_QUEUE_STATUS.SUCCESS,
         action: 'update-job-status',
       };
-      await this.sendEventMessages(payload);
+      await this.updateJobAndNotify(payload);
     } catch (error) {
       const payload = {
         job: jobInfo,
         status: JOB_QUEUE_STATUS.FAILED,
         action: 'update-job-status',
       };
-      await this.sendEventMessages(payload);
+      await this.updateJobAndNotify(payload);
     }
   };
 
-  async sendEventMessages(payload: any) {
-    this.jobQueueService.updateJobStatus(payload.job, payload.status);
+  async updateJobAndNotify(payload: any) {
+    Logger.log(
+      'Updating job status and sending message to notification service',
+      payload,
+    );
+    await this.jobQueueService.updateJobStatus(payload.job, payload.status);
     await this.kafka.produce({
       topic: 'notifications',
       messages: [

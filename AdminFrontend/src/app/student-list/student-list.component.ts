@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Student, UpdateStudent } from '../model/student.model';
 import { StudentService } from '../services/student.service';
 import {
@@ -7,12 +7,19 @@ import {
   pencilIcon,
   SVGIcon,
   trashIcon,
-  arrowRotateCwIcon
+  arrowRotateCwIcon,
 } from '@progress/kendo-svg-icons';
 import { ExportParameters } from '../core/constants';
 import { State } from '@progress/kendo-data-query';
 
-import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  Subscription,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { GridDataResult } from '@progress/kendo-angular-grid';
 import { PageChangeEvent } from '@progress/kendo-angular-pager';
 import { UtilService } from '../services/util.service';
@@ -31,7 +38,7 @@ import { Response } from '../model/response.model';
   styleUrl: './student-list.component.scss',
   standalone: false,
 })
-export class StudentListComponent implements OnInit {
+export class StudentListComponent implements OnInit, OnDestroy {
   public editIcon: SVGIcon = pencilIcon;
   public deleteIcon: SVGIcon = trashIcon;
   public carrotDownIcon: SVGIcon = caretAltDownIcon;
@@ -48,7 +55,7 @@ export class StudentListComponent implements OnInit {
 
   public gridData!: Observable<GridDataResult>;
   private readonly stateChange = new BehaviorSubject<State>(this.pageState);
-
+  private reloadListSubscription: Subscription = new Subscription();
   students$!: Observable<GridDataResult>;
 
   constructor(
@@ -70,6 +77,14 @@ export class StudentListComponent implements OnInit {
 
   ngOnInit(): void {
     this.stateChange.next(this.pageState);
+    this.reloadListSubscription =
+      this.studentService.refreshStudentList.subscribe(() => {
+        this.refreshData();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.reloadListSubscription.unsubscribe();
   }
 
   public pageChange(state: PageChangeEvent): void {
@@ -78,7 +93,7 @@ export class StudentListComponent implements OnInit {
 
   public refreshData = () => {
     this.stateChange.next(this.pageState);
-  }
+  };
 
   /**
    * Formats the date of birth to 'YYYY-MM-DD'.

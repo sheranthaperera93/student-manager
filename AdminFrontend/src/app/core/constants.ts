@@ -16,6 +16,11 @@ export enum JOB_QUEUE_STATUS {
   FAILED = 2,
 }
 
+export enum JOB_QUEUE_TYPES {
+  FILE_UPLOAD = 1,
+  FILE_EXPORT = 2,
+}
+
 export interface ExportParameters {
   ageRange: [number, number];
 }
@@ -23,4 +28,13 @@ export interface ExportParameters {
 export enum JOB_TYPES {
   UPLOAD = 'upload',
   EXPORT = 'export',
+}
+
+export interface JobQueueItem {
+  createdDate: string;
+  id: number;
+  jobCompleteDate: string;
+  jobData: string;
+  status: number;
+  type: number;
 }

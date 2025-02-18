@@ -1,7 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FileInfo } from '@progress/kendo-angular-upload';
 import { bellIcon, SVGIcon, uploadIcon } from '@progress/kendo-svg-icons';
-import { JOB_QUEUE_STATUS, JOB_STATUS, JOB_TYPES } from '../core/constants';
+import {
+  JOB_QUEUE_STATUS,
+  JOB_QUEUE_TYPES,
+  JOB_STATUS,
+  JOB_TYPES,
+  JobQueueItem,
+} from '../core/constants';
 import { Notification } from '../model/notification.model';
 import { NotificationService } from '../services/notification.service';
 import { StudentService } from '../services/student.service';
@@ -23,36 +29,36 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private readonly messageSubscription: Subscription;
 
-  public jobQueue: Notification[] = [
-    {
-      id: 1,
-      name: 'Success',
-      date: new Date(),
-      status: JOB_STATUS.SUCCESS,
-      type: JOB_TYPES.UPLOAD,
-    },
-    {
-      id: 2,
-      name: 'Failed',
-      date: new Date(),
-      status: JOB_STATUS.FAILED,
-      type: JOB_TYPES.UPLOAD,
-    },
-    {
-      id: 3,
-      name: 'Pending',
-      date: new Date(),
-      status: JOB_STATUS.PENDING,
-      type: JOB_TYPES.UPLOAD,
-    },
-    {
-      id: 4,
-      name: 'Download Ready',
-      date: new Date(),
-      status: JOB_STATUS.SUCCESS,
-      type: JOB_TYPES.EXPORT,
-    },
-  ];
+  // public jobQueue: Notification[] = [{
+  //   id: 1,
+  //   name: 'Success',
+  //   date: new Date(),
+  //   status: JOB_STATUS.SUCCESS,
+  //   type: JOB_TYPES.UPLOAD,
+  // },
+  // {
+  //   id: 2,
+  //   name: 'Failed',
+  //   date: new Date(),
+  //   status: JOB_STATUS.FAILED,
+  //   type: JOB_TYPES.UPLOAD,
+  // },
+  // {
+  //   id: 3,
+  //   name: 'Pending',
+  //   date: new Date(),
+  //   status: JOB_STATUS.PENDING,
+  //   type: JOB_TYPES.UPLOAD,
+  // },
+  // {
+  //   id: 4,
+  //   name: 'Download Ready',
+  //   date: new Date(),
+  //   status: JOB_STATUS.SUCCESS,
+  //   type: JOB_TYPES.EXPORT,
+  // }],
+
+  public jobQueue: Notification[] = [];
 
   constructor(
     private readonly notificationService: NotificationService,
@@ -62,12 +68,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.messageSubscription = this.socketService
       .on('message')
       .subscribe((data) => {
-        if (data.status === JOB_QUEUE_STATUS.SUCCESS) {
-          const job = data.job;
+        console.log('Message from the heavens ', data);
+        const parsedMsg = JSON.parse(data);
+        switch (parsedMsg.status) {
+          case JOB_QUEUE_STATUS.SUCCESS:
+            this.notificationService.showNotification(
+              'success',
+              'User upload success'
+            );
+            break;
+          case JOB_QUEUE_STATUS.FAILED:
+            this.notificationService.showNotification(
+              'error',
+              'User upload failed. Try again later'
+            );
+            break;
+          default:
+            console.warn('Unknown job status:', parsedMsg.status);
         }
-        if (data.status === JOB_QUEUE_STATUS.FAILED) {
-          const job = data.job;
-        }
+        this.fetchJobQueues();
+        this.studentService.refreshStudentList.next('reload-list')
       });
   }
 
@@ -80,12 +100,49 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   fetchJobQueues() {
-    console.log("asadasd")
     this.notificationService.getJobQueueItems().subscribe({
-      next: (data) => {
-        this.jobQueue = data;
+      next: (data: JobQueueItem[]) => {
+        this.jobQueue = data.map(
+          (element: JobQueueItem): Notification => ({
+            id: element.id,
+            status: this.getStatus(element.status),
+            type: this.getType(element.type),
+            date:
+              element.status === JOB_QUEUE_STATUS.SUCCESS
+                ? new Date(element.jobCompleteDate)
+                : new Date(element.createdDate),
+            name: this.getName(element.type, element.status),
+          })
+        );
       },
     });
+  }
+
+  getStatus = (status: JOB_QUEUE_STATUS): JOB_STATUS => {
+    switch (status) {
+      case JOB_QUEUE_STATUS.SUCCESS:
+        return JOB_STATUS.SUCCESS;
+      case JOB_QUEUE_STATUS.PENDING:
+        return JOB_STATUS.PENDING;
+      default:
+        return JOB_STATUS.FAILED;
+    }
+  };
+
+  getType = (type: JOB_QUEUE_TYPES): JOB_TYPES => {
+    return type === JOB_QUEUE_TYPES.FILE_UPLOAD
+      ? JOB_TYPES.UPLOAD
+      : JOB_TYPES.EXPORT;
+  };
+
+  getName = (type: JOB_QUEUE_TYPES, status: JOB_QUEUE_STATUS) => {
+    if(type === JOB_QUEUE_TYPES.FILE_UPLOAD && status === JOB_QUEUE_STATUS.SUCCESS){
+      return "User upload success";
+    } else if (type === JOB_QUEUE_TYPES.FILE_UPLOAD && status === JOB_QUEUE_STATUS.FAILED) {
+      return "User upload failed. Try again later";
+    } else {
+      return "Unknown Notification"
+    }
   }
 
   /**

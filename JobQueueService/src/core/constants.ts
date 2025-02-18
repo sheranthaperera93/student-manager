@@ -5,6 +5,7 @@ export interface JobItem {
 
 export enum JOB_TYPES {
   FILE_UPLOAD = 'file_upload',
+  FILE_EXPORT = "file_export"
 }
 
 export interface JobData {
