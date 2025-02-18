@@ -15,7 +15,6 @@ import { State } from '@progress/kendo-data-query';
 import {
   BehaviorSubject,
   Observable,
-  Subject,
   Subscription,
   switchMap,
   tap,
