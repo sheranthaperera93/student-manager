@@ -1,9 +1,8 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { UpdateUserInput } from './models/update-user.model';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { UpdateUserPayload, User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { CustomException } from 'src/core/custom-exception';
@@ -38,7 +37,7 @@ export class UsersService {
     return this.userRepository.findOneBy({ id });
   }
 
-  async update(id: number, updateUserInput: UpdateUserInput): Promise<string> {
+  async update(id: number, updateUserInput: UpdateUserPayload): Promise<string> {
     try {
       const user = await this.findById(id);
       if (!user) {

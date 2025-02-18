@@ -1,5 +1,7 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, InputType, PartialType } from '@nestjs/graphql';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { IsString, Length, IsNotEmpty, IsEmail, IsDateString } from 'class-validator';
+
 
 @Entity('user')
 @ObjectType()
@@ -20,3 +22,27 @@ export class User {
   @Column()
   date_of_birth: Date;
 }
+
+@InputType()
+export class UserInput {
+  @Field()
+  @IsString()
+  @Length(1, 255)
+  @IsNotEmpty() 
+  name: string;
+
+  @Field()
+  @IsString()
+  @IsEmail()
+  @Length(1, 255)
+  @IsNotEmpty()
+  email: string;
+
+  @Field()
+  @IsDateString()
+  @IsNotEmpty()
+  date_of_birth: Date;
+}
+
+@InputType()
+export class UpdateUserPayload extends PartialType(UserInput) {}
