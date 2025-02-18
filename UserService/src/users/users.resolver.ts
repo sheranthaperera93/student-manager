@@ -76,4 +76,17 @@ export class UsersResolver {
     };
     return response;
   }
+
+  @Mutation((returns) => Response)
+  async exportUsers(
+    @Args({ name: 'age', type: () => String }) params: string,
+  ): Promise<Response> {
+    const resp =  await this.userService.exportUsers(params);
+    let response: Response = {
+      message: resp,
+      data: { exported: true },
+    };
+    return response;
+  }
+
 }

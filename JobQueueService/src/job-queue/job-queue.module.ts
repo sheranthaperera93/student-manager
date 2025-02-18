@@ -12,6 +12,7 @@ import {
 import { JobQueueResolver } from './job-queue.resolver';
 import { User } from 'src/entities/user.entity';
 import { QueueModule } from 'src/queue/queue.module';
+import { JobQueueController } from './job-queue.controller';
 
 @Module({
   imports: [
@@ -27,5 +28,6 @@ import { QueueModule } from 'src/queue/queue.module';
     QueueModule
   ],
   providers: [JobQueueResolver, JobQueueService],
+  controllers: [JobQueueController],
 })
 export class JobQueueModule {}

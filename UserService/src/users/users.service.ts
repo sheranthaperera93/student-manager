@@ -33,11 +33,14 @@ export class UsersService {
     return { items, total };
   }
 
-  findById(id: number): Promise<User|null> {
+  findById(id: number): Promise<User | null> {
     return this.userRepository.findOneBy({ id });
   }
 
-  async update(id: number, updateUserInput: UpdateUserPayload): Promise<string> {
+  async update(
+    id: number,
+    updateUserInput: UpdateUserPayload,
+  ): Promise<string> {
     try {
       const user = await this.findById(id);
       if (!user) {
@@ -84,14 +87,14 @@ export class UsersService {
     }
   }
 
-   /**
+  /**
    * Creates multiple user records in bulk.
    *
    * @param {User[]} userRecords - An array of user records to be created.
    * @returns {Promise<string>} A promise that resolves to a success message if the users are created successfully.
    * @throws {CustomException} Throws a CustomException if the bulk user creation fails.
    */
-   async createBulk(userRecords: User[]):Promise<string> {
+  async createBulk(userRecords: User[]): Promise<string> {
     try {
       await this.userRepository.save(userRecords);
       return 'Users created successfully';
@@ -105,11 +108,13 @@ export class UsersService {
     }
   }
 
-  handleUploadProcess = async (file: Express.Multer.File): Promise<{fileName: string, filePath: string}> => {
+  handleUploadProcess = async (
+    file: Express.Multer.File,
+  ): Promise<{ fileName: string; filePath: string }> => {
     const { fileName, filePath } = await this.uploadFile(file);
-    Logger.log("FileName", fileName);
+    Logger.log('FileName', fileName);
     await this.sendUploadJob(filePath, fileName);
-    return {filePath, fileName};
+    return { filePath, fileName };
   };
 
   async uploadFile(
@@ -152,7 +157,7 @@ export class UsersService {
   };
 
   getFile(fileName: string): string {
-    console.log("fileName", fileName);
+    console.log('fileName', fileName);
     const filePath = join(__dirname, '../', 'uploads', fileName);
     if (!existsSync(filePath)) {
       throw new CustomException(
@@ -173,4 +178,17 @@ export class UsersService {
       );
     }
   }
+
+  exportUsers = async (age: string) => {
+    const payload = {
+      params: { age },
+      action: 'export',
+    };
+    await this.kafka.produce({
+      topic: 'user-export',
+      messages: [{ value: JSON.stringify(payload) }],
+    });
+    return 'User export job created successfully';
+  };
+
 }

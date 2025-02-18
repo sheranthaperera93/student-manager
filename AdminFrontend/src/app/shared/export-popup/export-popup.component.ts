@@ -11,7 +11,8 @@ export class ExportPopupComponent {
   maxAge: number = 70;
   minAge: number = 5;
   ageRange: [number, number] = [20, 40];
-  @Output() export: EventEmitter<ExportParameters> = new EventEmitter<ExportParameters>();
+  @Output() export: EventEmitter<ExportParameters> =
+    new EventEmitter<ExportParameters>();
 
   /**
    * Handles the export action by emitting an event with the current age range.
@@ -20,6 +21,8 @@ export class ExportPopupComponent {
    * @returns {void}
    */
   onExportHandler = () => {
-    this.export.emit({ ageRange: this.ageRange });
+    this.export.emit({
+      ageRange: { from: this.ageRange[0], to: this.ageRange[1] },
+    });
   };
 }

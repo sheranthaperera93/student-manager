@@ -5,8 +5,8 @@ import { Queue } from 'bull';
 import { JOB_TYPES } from 'src/core/constants';
 
 @Injectable()
-export class FileUploadConsumerService implements OnModuleInit {
-  groupId: string = 'file-upload-queue-group';
+export class FileExportConsumerService implements OnModuleInit {
+  groupId: string = 'file-export-queue-group';
 
   constructor(
     private readonly consumer: ConsumerService,
@@ -16,7 +16,7 @@ export class FileUploadConsumerService implements OnModuleInit {
   async onModuleInit() {
     this.consumer.consume(
       this.groupId,
-      { topics: ['user-upload'], fromBeginning: true },
+      { topics: ['user-export'], fromBeginning: true },
       {
         eachMessage: async ({ topic, partition, message }) => {
           Logger.log({
@@ -25,11 +25,11 @@ export class FileUploadConsumerService implements OnModuleInit {
             partition: partition.toString(),
             topic: topic.toString(),
           });
-          Logger.log('Adding upload job to bull queue');
+          Logger.log('Adding export job to bull queue');
           await this.jobQueue.add(
-            JOB_TYPES.FILE_UPLOAD,
+            JOB_TYPES.FILE_EXPORT,
             {
-              type: JOB_TYPES.FILE_UPLOAD,
+              type: JOB_TYPES.FILE_EXPORT,
               message: message.value?.toString(),
             },
             {

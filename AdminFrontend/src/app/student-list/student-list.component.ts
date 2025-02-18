@@ -30,6 +30,7 @@ import {
 } from '@progress/kendo-angular-dialog';
 import { StudentUpdateComponent } from '../student-update/student-update.component';
 import { Response } from '../model/response.model';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-student-list',
@@ -58,11 +59,13 @@ export class StudentListComponent implements OnInit, OnDestroy {
   students$!: Observable<GridDataResult>;
   private deleteSubscription: Subscription = new Subscription();
   private updateSubscription: Subscription = new Subscription();
+  private exportSubscription: Subscription = new Subscription();
 
   constructor(
     public readonly studentService: StudentService,
     private readonly utilService: UtilService,
-    private readonly dialogService: DialogService
+    private readonly dialogService: DialogService,
+    private readonly notificationService: NotificationService
   ) {
     this.gridData = this.stateChange.pipe(
       tap((state) => {
@@ -195,6 +198,14 @@ export class StudentListComponent implements OnInit, OnDestroy {
    */
   onExportHandler = (parameters: ExportParameters): void => {
     console.log('Exporting data with params: ', parameters);
+    this.exportSubscription = this.studentService
+      .exportData(parameters)
+      .subscribe(() => {
+        this.notificationService.showNotification(
+          'success',
+          'Export initiated successfully'
+        );
+      });
     this.showExportPopup = false;
   };
 }

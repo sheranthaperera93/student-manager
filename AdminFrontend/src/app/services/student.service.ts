@@ -8,6 +8,7 @@ import { GridDataResult } from '@progress/kendo-angular-grid';
 import { UpdateStudent } from '../model/student.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { ExportParameters } from '../core/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -101,5 +102,28 @@ export class StudentService {
     const formData = new FormData();
     formData.append('file', file, file.name);
     return this.http.post(environment.userService + '/users/upload', formData);
+  };
+
+  exportData = (params: ExportParameters): Observable<any> => {
+    return this.apollo
+      .mutate({
+        mutation: gql`
+          mutation exportUsers($age: String!) {
+            exportUsers(age: $age) {
+              message
+              data
+            }
+          }
+        `,
+        variables: {
+          age: `${params.ageRange.from}-${params.ageRange.to}`,
+        },
+      })
+      .pipe(
+        map((result: any) => ({
+          message: result.data.exportUsers.message,
+          data: {},
+        }))
+      );
   };
 }

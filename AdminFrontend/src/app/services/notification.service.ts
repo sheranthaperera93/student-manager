@@ -117,4 +117,26 @@ export class NotificationService {
         }))
       );
   };
+
+  downloadExportJob = (jobId: number) => {
+    return this.apollo
+      .watchQuery<any>({
+        query: gql`
+          query downloadExport($id: ID!) {
+            downloadExport(id: $id)
+          }
+        `,
+        variables: {
+          id: jobId,
+        },
+        fetchPolicy: 'cache-and-network',
+      })
+      .valueChanges.pipe(
+        map((result) => ({ fileName: result.data.downloadExport })),
+        catchError((error) => {
+          console.error('Error fetching export job queue items', error);
+          return of({fileName: ''}); // Return an empty array in case of error
+        })
+      );
+  };
 }

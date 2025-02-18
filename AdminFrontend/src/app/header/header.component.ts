@@ -70,25 +70,61 @@ export class HeaderComponent implements OnInit, OnDestroy {
       .subscribe((data) => {
         console.log('Message from the heavens ', data);
         const parsedMsg = JSON.parse(data);
-        switch (parsedMsg.status) {
-          case JOB_QUEUE_STATUS.SUCCESS:
-            this.notificationService.showNotification(
-              'success',
-              'User upload success'
-            );
-            break;
-          case JOB_QUEUE_STATUS.FAILED:
-            this.notificationService.showNotification(
-              'error',
-              'User upload failed. Try again later'
-            );
-            break;
-          default:
-            console.warn('Unknown job status:', parsedMsg.status);
+        if (parsedMsg.type === JOB_TYPES.UPLOAD) {
+          this.handleOnUploadJobChange(parsedMsg);
+        } else if (parsedMsg.type === JOB_TYPES.EXPORT) {
+          this.handleOnExportJobChange(parsedMsg);
         }
-        this.fetchJobQueues();
-        this.studentService.refreshStudentList.next('reload-list')
       });
+  }
+
+  handleOnUploadJobChange(parsedMsg: {
+    job: JobQueueItem;
+    type: string;
+    status: number;
+  }) {
+    switch (parsedMsg.status) {
+      case JOB_QUEUE_STATUS.SUCCESS:
+        this.notificationService.showNotification(
+          'success',
+          'User export success'
+        );
+        break;
+      case JOB_QUEUE_STATUS.FAILED:
+        this.notificationService.showNotification(
+          'error',
+          'User export failed. Try again later'
+        );
+        break;
+      default:
+        console.warn('Unknown job status:', parsedMsg.status);
+    }
+    this.fetchJobQueues();
+  }
+
+  handleOnExportJobChange(parsedMsg: {
+    job: JobQueueItem;
+    type: string;
+    status: number;
+  }) {
+    switch (parsedMsg.status) {
+      case JOB_QUEUE_STATUS.SUCCESS:
+        this.notificationService.showNotification(
+          'success',
+          'User upload success'
+        );
+        break;
+      case JOB_QUEUE_STATUS.FAILED:
+        this.notificationService.showNotification(
+          'error',
+          'User upload failed. Try again later'
+        );
+        break;
+      default:
+        console.warn('Unknown job status:', parsedMsg.status);
+    }
+    this.fetchJobQueues();
+    this.studentService.refreshStudentList.next('reload-list');
   }
 
   ngOnInit(): void {
@@ -136,14 +172,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
   };
 
   getName = (type: JOB_QUEUE_TYPES, status: JOB_QUEUE_STATUS) => {
-    if(type === JOB_QUEUE_TYPES.FILE_UPLOAD && status === JOB_QUEUE_STATUS.SUCCESS){
-      return "User upload success";
-    } else if (type === JOB_QUEUE_TYPES.FILE_UPLOAD && status === JOB_QUEUE_STATUS.FAILED) {
-      return "User upload failed. Try again later";
+    if (
+      type === JOB_QUEUE_TYPES.FILE_UPLOAD &&
+      status === JOB_QUEUE_STATUS.SUCCESS
+    ) {
+      return 'User upload success';
+    } else if (
+      type === JOB_QUEUE_TYPES.FILE_UPLOAD &&
+      status === JOB_QUEUE_STATUS.FAILED
+    ) {
+      return 'User upload failed. Try again later';
+    } else if (
+      type === JOB_QUEUE_TYPES.FILE_EXPORT &&
+      status === JOB_QUEUE_STATUS.SUCCESS
+    ) {
+      return 'User export success';
+    } else if (
+      type === JOB_QUEUE_TYPES.FILE_EXPORT &&
+      status === JOB_QUEUE_STATUS.FAILED
+    ) {
+      return 'User export failed. Try again later';
     } else {
-      return "Unknown Notification"
+      return 'Unknown Notification';
     }
-  }
+  };
 
   /**
    * Opens the upload dialog by setting the visibility flag to true.

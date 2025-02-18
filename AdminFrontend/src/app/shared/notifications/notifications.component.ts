@@ -31,6 +31,21 @@ export class NotificationsComponent {
         );
       });
     }
+    if (item.status === JOB_STATUS.SUCCESS && item.type === JOB_TYPES.EXPORT) {
+      const baseUrl = 'http://localhost:3006/job-queue/download/';
+      this.notificationService
+        .downloadExportJob(item.id)
+        .subscribe((res: { fileName: string }) => {
+          fetch(`${baseUrl}${res.fileName}`)
+            .then((response) => response.blob())
+            .then((blob) => {
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = res.fileName;
+              link.click();
+            });
+        });
+    }
   }
 
   /**

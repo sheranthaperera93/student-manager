@@ -22,7 +22,7 @@ export enum JOB_QUEUE_TYPES {
 }
 
 export interface ExportParameters {
-  ageRange: [number, number];
+  ageRange: {from: number, to: number};
 }
 
 export enum JOB_TYPES {

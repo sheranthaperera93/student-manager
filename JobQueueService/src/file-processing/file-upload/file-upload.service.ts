@@ -53,7 +53,7 @@ export class FileUploadService {
     }
   };
 
-  retryJobQueueItem = async (message: string) => {
+  handleRetryJobQueueItem = async (message: string) => {
     const { jobId } = JSON.parse(message);
     const jobItem = await this.jobQueueRepository.findOneBy({ id: jobId });
     if (!jobItem) {
@@ -153,7 +153,6 @@ export class FileUploadService {
   /**
    * Sends upload data to a Kafka topic.
    *
-   * @param {User[]} records - An array of user records to be uploaded.
    * @param {JobQueue} jobInfo - Information about the job queue.
    * @returns {Promise<void>} A promise that resolves when the data has been sent.
    */
@@ -187,6 +186,7 @@ export class FileUploadService {
         {
           value: JSON.stringify({
             job: payload.job,
+            type: 'exports',
             status: payload.status,
           }),
         },

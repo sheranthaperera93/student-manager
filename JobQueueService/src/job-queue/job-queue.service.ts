@@ -2,6 +2,8 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import {
   JOB_QUEUE_STATUS,
   JOB_TYPE,
@@ -56,6 +58,26 @@ export class JobQueueService {
     }
   }
 
+  async updateExportJobStatus(
+    job: JobQueue,
+    status: JOB_QUEUE_STATUS,
+  ): Promise<void> {
+    const jobItem = await this.jobQueueRepository.findOneBy({ id: job.id });
+    if (jobItem) {
+      const updateData: JobQueue = {
+        ...job,
+        jobCompleteDate: new Date(),
+        status,
+      };
+      await this.jobQueueRepository.update({ id: job.id }, updateData);
+    } else {
+      Logger.error('Failed to update export job status. Invalid JOB ID:', {
+        jobId: job.id,
+        status,
+      });
+    }
+  }
+
   async findAll(): Promise<JobQueue[]> {
     const jobs = await this.jobQueueRepository.find();
     return jobs.map((job) => ({
@@ -73,7 +95,9 @@ export class JobQueueService {
           jobId,
         },
       );
-      throw new Error('Failed to re-try job. Job either not found or already completed');
+      throw new Error(
+        'Failed to re-try job. Job either not found or already completed',
+      );
     }
     Logger.log('Adding retry job to bull queue');
     await this.jobQueue.add(
@@ -89,4 +113,40 @@ export class JobQueueService {
     );
     return 'Re-try job created';
   }
+
+  createExportJob = async (age: string, type: JOB_TYPE): Promise<JobQueue> => {
+    let jobQueue = new JobQueue();
+    jobQueue.createdDate = new Date();
+    jobQueue.status = JOB_QUEUE_STATUS.PENDING;
+    let tmpJobData: JobData = {
+      params: JSON.stringify({ age }),
+      fileName: '',
+      filePath: '',
+    };
+    jobQueue.type = type;
+    jobQueue.jobData = JSON.stringify(tmpJobData);
+    Logger.log('Inserting job queue item to DB');
+    return await this.jobQueueRepository.save(jobQueue);
+  };
+
+  getFile(fileName: string): string {
+    console.log('fileName', fileName);
+    const filePath = join(__dirname, 'uploads', fileName);
+    if (!existsSync(filePath)) {
+      throw new Error('File not found');
+    }
+    try {
+      return filePath;
+    } catch (error) {
+      throw new Error('Failed to read file');
+    }
+  }
+
+  fetchExport = async (id: number): Promise<string> => {
+    const jobItem = await this.jobQueueRepository.findOneBy({ id: id });
+    if (!jobItem) {
+      throw new Error('Failed to fetch job. Job not found');
+    }
+    return JSON.parse(jobItem.jobData).fileName;
+  };
 }

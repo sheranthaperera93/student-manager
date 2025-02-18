@@ -10,8 +10,9 @@ export enum JOB_TYPES {
 }
 
 export interface JobData {
-  filePath: string,
-  fileName: string,
+  filePath?: string,
+  fileName?: string,
+  params?: string
 }
 
 export enum JOB_QUEUE_STATUS {

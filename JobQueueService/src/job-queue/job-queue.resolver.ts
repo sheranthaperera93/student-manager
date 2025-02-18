@@ -17,4 +17,11 @@ export class JobQueueResolver {
   ): Promise<string> {
     return await this.jobQueueService.retryJobQueueItem(id);
   }
+  
+  @Query((returns) => String)
+  async downloadExport(
+    @Args({ name: 'id', type: () => ID }) id: number,
+  ): Promise<string> {
+    return await this.jobQueueService.fetchExport(id);
+  }
 }
