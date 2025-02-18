@@ -3,10 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
-import { JOB_QUEUE_STATUS, JOB_TYPE, JobData, User } from 'src/core/constants';
+import { JOB_QUEUE_STATUS, JOB_TYPE } from 'src/core/constants';
 import { JobQueue } from 'src/entities/job_queue.entity';
+import { User } from 'src/entities/user.entity';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { ProducerService } from 'src/kafka/producer/producer.service';
+import { BulkUser } from 'src/models/bulk-user.model';
 import { Repository } from 'typeorm';
 import * as xlsx from 'xlsx';
 
@@ -15,18 +17,20 @@ export class FileUploadService {
   constructor(
     @InjectRepository(JobQueue)
     private readonly jobQueueRepository: Repository<JobQueue>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly kafka: ProducerService,
     private readonly jobQueueService: JobQueueService,
   ) {}
 
   /**
    * Handles the file upload process.
-   * 
+   *
    * @param {string} message - The message containing file details in JSON format.
    * @returns {Promise<void>} - A promise that resolves when the file upload process is complete.
-   * 
+   *
    * @throws {Error} - Throws an error if there is an issue processing the file upload.
-   * 
+   *
    * The function performs the following steps:
    * 1. Parses the message to extract file details.
    * 2. Creates an upload job in the job queue.
@@ -39,7 +43,11 @@ export class FileUploadService {
   handleFileUpload = async (message: string) => {
     try {
       const { fileName, filePath } = JSON.parse(message);
-      const jobQueue = await this.jobQueueService.createUploadJob(filePath, fileName, JOB_TYPE.UPLOADS);
+      const jobQueue = await this.jobQueueService.createUploadJob(
+        filePath,
+        fileName,
+        JOB_TYPE.UPLOADS,
+      );
       const response = await axios.get(
         `http://localhost:3002/api/users/upload/${fileName}`,
         { responseType: 'arraybuffer' },
@@ -51,16 +59,16 @@ export class FileUploadService {
       const tmpFilePath = path.join(__dirname, 'uploads', fileName);
       fs.writeFileSync(tmpFilePath, response.data);
       Logger.log(`File temporary saved to ${tmpFilePath}`);
-      const records: User[] = this.extractExcelContent(tmpFilePath);
+      const records: BulkUser[] = this.extractExcelContent(tmpFilePath);
       Logger.log('File deleted from temporary location');
       fs.unlinkSync(tmpFilePath);
-      await this.sendUploadData(records, jobQueue);
+      Logger.log('Insert records to database');
+      await this.userRepository.save(records);
+      await this.notifyJobUpdate(jobQueue);
     } catch (error) {
       Logger.error('Error processing file upload: ', error);
     }
   };
-
-
 
   /**
    * Updates the status of a job in the job queue.
@@ -100,11 +108,11 @@ export class FileUploadService {
    * const users = extractExcelContent('/path/to/excel/file.xlsx');
    * console.log(users);
    */
-  extractExcelContent(filePath: string): Array<User> {
+  extractExcelContent(filePath: string): Array<BulkUser> {
     const workbook = xlsx.readFile(filePath);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-    const records: User[] = jsonData.slice(0).map((row: any) => {
+    const records: BulkUser[] = jsonData.slice(0).map((row: any) => {
       return {
         name: row[0],
         email: row[1],
@@ -136,10 +144,36 @@ export class FileUploadService {
    * @param {JobQueue} jobInfo - Information about the job queue.
    * @returns {Promise<void>} A promise that resolves when the data has been sent.
    */
-  sendUploadData = async (records: User[], jobInfo: JobQueue) => {
-    await this.kafka.produce({
-      topic: 'user-upload-data',
-      messages: [{ value: JSON.stringify({ records, job: jobInfo }) }],
-    });
+  notifyJobUpdate = async (jobInfo: JobQueue): Promise<void> => {
+    try {
+      const payload = {
+        job: jobInfo,
+        status: JOB_QUEUE_STATUS.SUCCESS,
+        action: 'update-job-status',
+      };
+      await this.sendEventMessages(payload);
+    } catch (error) {
+      const payload = {
+        job: jobInfo,
+        status: JOB_QUEUE_STATUS.FAILED,
+        action: 'update-job-status',
+      };
+      await this.sendEventMessages(payload);
+    }
   };
+
+  async sendEventMessages(payload: any) {
+    this.jobQueueService.updateJobStatus(payload.job, payload.status);
+    await this.kafka.produce({
+      topic: 'notifications',
+      messages: [
+        {
+          value: JSON.stringify({
+            job: payload.job,
+            status: payload.status,
+          }),
+        },
+      ],
+    });
+  }
 }

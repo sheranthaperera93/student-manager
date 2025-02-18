@@ -6,15 +6,16 @@ import {
   Resolver,
   ResolveReference,
 } from '@nestjs/graphql';
-import { UserService } from './user.service';
+import { UsersService } from './users.service';
 import { UpdateUserInput } from './models/update-user.model';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { Response } from './models/response.model';
 import { User } from 'src/entities/user.entity';
+import { BulkInsertDTO } from './models/bulk-insert-dto-model';
 
 @Resolver((of) => User)
-export class UserResolver {
-  constructor(private readonly userService: UserService) {}
+export class UsersResolver {
+  constructor(private readonly userService: UsersService) {}
 
   @Query((returns) => PaginatedUsers)
   async getUsers(
@@ -27,7 +28,7 @@ export class UserResolver {
   @Query((returns) => User)
   async getUser(
     @Args({ name: 'id', type: () => ID }) id: number,
-  ): Promise<User> {
+  ): Promise<User|null> {
     return this.userService.findById(id);
   }
 
@@ -35,7 +36,7 @@ export class UserResolver {
   resolveReference(reference: {
     __typename: string;
     id: number;
-  }): Promise<User> {
+  }): Promise<User|null> {
     return this.userService.findById(reference.id);
   }
 
@@ -61,6 +62,18 @@ export class UserResolver {
     let response: Response = {
       message: resp,
       data: { deleted: true },
+    };
+    return response;
+  }
+
+  @Mutation((returns) => Response)
+  async bulkCreate(
+    @Args({ name: 'data', type: () => [BulkInsertDTO] }) data: [BulkInsertDTO],
+  ): Promise<Response> {
+    const resp =  await this.userService.createBulk(data);
+    let response: Response = {
+      message: resp,
+      data: { bulkCreated: true },
     };
     return response;
   }

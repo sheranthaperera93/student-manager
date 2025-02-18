@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { JobQueueConsumerService } from './job-queue-consumer.service';
 import { JobQueueService } from './job-queue.service';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,10 +10,11 @@ import {
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
 import { JobQueueResolver } from './job-queue.resolver';
+import { User } from 'src/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([JobQueue]),
+    TypeOrmModule.forFeature([JobQueue, User]),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
       autoSchemaFile: {
@@ -24,6 +24,6 @@ import { JobQueueResolver } from './job-queue.resolver';
     }),
     KafkaModule,
   ],
-  providers: [JobQueueResolver, JobQueueService, JobQueueConsumerService],
+  providers: [JobQueueResolver, JobQueueService],
 })
 export class JobQueueModule {}

@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { QueueProcessor } from './queue.processor';
-import { FileUploadService } from 'src/file-upload/file-upload.service';
-import { JobQueue } from 'src/entities/job_queue.entity';
-import { ProducerService } from 'src/kafka/producer/producer.service';
+import { FileUploadService } from 'src/file-processing/file-upload/file-upload.service';
+import { KafkaModule } from 'src/kafka/kafka.module';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
+import { JobQueue } from 'src/entities/job_queue.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from 'src/entities/user.entity';
 
 @Module({
   imports: [
@@ -16,9 +17,10 @@ import { JobQueueService } from 'src/job-queue/job-queue.service';
         port: 6379, // Redis server port
       },
     }),
-    TypeOrmModule.forFeature([JobQueue]),
+    TypeOrmModule.forFeature([JobQueue, User]),
+    KafkaModule,
   ],
-  providers: [QueueProcessor, FileUploadService, ProducerService, JobQueueService],
+  providers: [QueueProcessor, FileUploadService, JobQueueService],
   exports: [QueueProcessor, BullModule],
 })
 export class QueueModule {}

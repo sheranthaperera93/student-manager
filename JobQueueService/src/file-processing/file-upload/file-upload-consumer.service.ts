@@ -1,8 +1,8 @@
-import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConsumerService } from 'src/kafka/consumer/consumer.service';
+import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { JOB_TYPES } from 'src/core/constants';
-import { ConsumerService } from 'src/kafka/consumer/consumer.service';
 
 @Injectable()
 export class FileUploadConsumerService implements OnModuleInit {
@@ -13,25 +13,13 @@ export class FileUploadConsumerService implements OnModuleInit {
     @InjectQueue('bull-queue') private readonly jobQueue: Queue,
   ) {}
 
-  /**
-   * Initializes the module and starts the file upload consumer.
-   * 
-   * This method is called when the module is initialized. It starts the Kafka consumer
-   * to listen to the 'user-upload-queue' topic from the beginning. For each message received,
-   * it logs the message details and adds a job to the Bull queue for file upload processing.
-   * 
-   * @async
-   * @method onModuleInit
-   * @returns {Promise<void>} A promise that resolves when the consumer is started and the jobs are added to the queue.
-   */
-  async onModuleInit(): Promise<void> {
-    Logger.log("starting consumer for file upload");
-    await this.consumer.consume(
+  async onModuleInit() {
+    this.consumer.consume(
       this.groupId,
-      { topics: ['user-upload-queue']},
+      { topics: ['user-upload'], fromBeginning: true },
       {
         eachMessage: async ({ topic, partition, message }) => {
-          Logger.log('Kafka message received', {
+          Logger.log({
             source: this.groupId,
             message: message.value?.toString(),
             partition: partition.toString(),

@@ -5,17 +5,15 @@ import {
 } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { UserResolver } from './user.resolver';
-import { UserService } from './user.service';
+import { UsersResolver } from './users.resolver';
+import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { UserController } from './user.controller';
-import { ProducerService } from 'src/kafka/producer/producer.service';
+import { UsersController } from './users.controller';
 import { KafkaModule } from 'src/kafka/kafka.module';
-import { UserConsumerService } from './user.consumer.service';
 
 @Module({
-  providers: [UserResolver, UserService, ProducerService, UserConsumerService],
+  providers: [UsersResolver, UsersService],
   imports: [
     TypeOrmModule.forFeature([User]),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
@@ -25,8 +23,8 @@ import { UserConsumerService } from './user.consumer.service';
       },
       plugins: [ApolloServerPluginInlineTrace()],
     }),
-    KafkaModule
+    KafkaModule,
   ],
-  controllers: [UserController],
+  controllers: [UsersController],
 })
-export class UserModule {}
+export class UsersModule {}

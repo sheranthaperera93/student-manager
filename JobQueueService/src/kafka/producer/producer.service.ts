@@ -10,7 +10,6 @@ export class ProducerService implements OnModuleInit, OnApplicationShutdown {
   private readonly kafka = new Kafka({
     brokers: ['host.docker.internal:9092'],
     clientId: 'nestjs-consumer-server',
-    connectionTimeout: 5000,
   });
 
   private readonly producer: Producer = this.kafka.producer();

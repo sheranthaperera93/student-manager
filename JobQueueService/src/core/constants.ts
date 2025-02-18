@@ -18,12 +18,6 @@ export enum JOB_QUEUE_STATUS {
   FAILED = 2,
 }
 
-export interface User {
-  name: string;
-  email: string;
-  date_of_birth: string;
-}
-
 export enum JOB_TYPE {
   UPLOADS = 1,
   EXPORTS = 2

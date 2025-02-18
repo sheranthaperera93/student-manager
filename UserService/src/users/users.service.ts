@@ -10,21 +10,13 @@ import { CustomException } from 'src/core/custom-exception';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly kafka: ProducerService,
   ) {}
 
-  /**
-   * Retrieves a paginated list of users.
-   *
-   * @param {Object} params - The parameters for pagination.
-   * @param {number} [params.skip] - The number of records to skip.
-   * @param {number} [params.take] - The number of records to take.
-   * @returns {Promise<PaginatedUsers>} A promise that resolves to a paginated list of users.
-   */
   async findAll({
     skip,
     take,
@@ -42,24 +34,10 @@ export class UserService {
     return { items, total };
   }
 
-  /**
-   * Finds a user by their unique identifier.
-   *
-   * @param id - The unique identifier of the user.
-   * @returns A promise that resolves to the user with the given id.
-   */
-  async findById(id: number): Promise<User> {
+  findById(id: number): Promise<User|null> {
     return this.userRepository.findOneBy({ id });
   }
 
-  /**
-   * Updates a user with the given ID using the provided updateUserInput.
-   *
-   * @param {number} id - The ID of the user to update.
-   * @param {UpdateUserInput} updateUserInput - The input data to update the user with.
-   * @returns {Promise<string>} - A promise that resolves to a success message if the update is successful.
-   * @throws {CustomException} - Throws an exception if the user is not found or if the update fails.
-   */
   async update(id: number, updateUserInput: UpdateUserInput): Promise<string> {
     try {
       const user = await this.findById(id);
@@ -84,13 +62,6 @@ export class UserService {
     }
   }
 
-  /**
-   * Deletes a user by their ID.
-   *
-   * @param {number} id - The ID of the user to delete.
-   * @returns {Promise<string>} A promise that resolves to a success message if the user is deleted.
-   * @throws {CustomException} If the user is not found or if the deletion fails.
-   */
   async delete(id: number): Promise<string> {
     try {
       const user = await this.findById(id);
@@ -114,14 +85,14 @@ export class UserService {
     }
   }
 
-  /**
+   /**
    * Creates multiple user records in bulk.
    *
    * @param {User[]} userRecords - An array of user records to be created.
    * @returns {Promise<string>} A promise that resolves to a success message if the users are created successfully.
    * @throws {CustomException} Throws a CustomException if the bulk user creation fails.
    */
-  async createBulk(userRecords: User[]) {
+   async createBulk(userRecords: User[]):Promise<string> {
     try {
       await this.userRepository.save(userRecords);
       return 'Users created successfully';
@@ -135,29 +106,13 @@ export class UserService {
     }
   }
 
-  /**
-   * Handles the process of uploading a file.
-   *
-   * @param file - The file to be uploaded.
-   * @returns A promise that resolves to an object containing the file name and file path.
-   */
-  async handleUploadProcess(
-    file: Express.Multer.File,
-  ): Promise<{ fileName: string; filePath: string }> {
-    Logger.log('Uploading file to local storage');
+  handleUploadProcess = async (file: Express.Multer.File): Promise<{fileName: string, filePath: string}> => {
     const { fileName, filePath } = await this.uploadFile(file);
-
+    Logger.log("FileName", fileName);
     await this.sendUploadJob(filePath, fileName);
-    return { filePath, fileName };
-  }
+    return {filePath, fileName};
+  };
 
-  /**
-   * Uploads a file to the server.
-   *
-   * @param {Express.Multer.File} file - The file to be uploaded.
-   * @returns {Promise<{ fileName: string; filePath: string }>} A promise that resolves with the file name and file path.
-   * @throws {CustomException} Throws a custom exception if the file upload fails.
-   */
   async uploadFile(
     file: Express.Multer.File,
   ): Promise<{ fileName: string; filePath: string }> {
@@ -185,38 +140,20 @@ export class UserService {
     });
   }
 
-  /**
-   * Sends an upload job to the job queue service.
-   *
-   * @param filePath - The path of the file to be uploaded.
-   * @param fileName - The name of the file to be uploaded.
-   * @returns A promise that resolves when the job has been sent to the queue.
-   */
-  async sendUploadJob(filePath: string, fileName: string) {
+  sendUploadJob = async (filePath: string, fileName: string) => {
     const payload = {
-      filePath,
-      fileName,
+      filePath: filePath,
+      fileName: fileName,
       action: 'upload',
     };
-    Logger.log(
-      'Sending upload job details to job queue service with payload',
-      payload,
-    );
     await this.kafka.produce({
-      topic: 'user-upload-queue',
-      messages: [{ key: 'bulk-insert', value: JSON.stringify(payload) }],
+      topic: 'user-upload',
+      messages: [{ value: JSON.stringify(payload) }],
     });
-  }
+  };
 
-  /**
-   * Retrieves the file path for a given file name.
-   * 
-   * @param fileName - The name of the file to retrieve.
-   * @returns The file path of the requested file.
-   * @throws CustomException if the file does not exist.
-   */
   getFile(fileName: string): string {
-    Logger.log('fileName', fileName);
+    console.log("fileName", fileName);
     const filePath = join(__dirname, '../', 'uploads', fileName);
     if (!existsSync(filePath)) {
       throw new CustomException(
@@ -226,6 +163,15 @@ export class UserService {
         HttpStatus.NOT_FOUND,
       );
     }
-    return filePath;
+    try {
+      return filePath;
+    } catch (error) {
+      throw new CustomException(
+        'Failed to read file',
+        1007,
+        error,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

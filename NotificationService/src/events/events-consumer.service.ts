@@ -11,16 +11,6 @@ export class EventsConsumerService implements OnModuleInit {
     private readonly eventsGateway: EventsGateway,
   ) {}
 
-  /**
-   * Initializes the module and starts the Kafka consumer to listen for messages on the 'notifications' topic.
-   * Logs a debug message indicating that the user upload data consumer has started.
-   * Consumes messages from the specified Kafka topic and handles each message by logging its details
-   * and passing it to the events gateway for further processing.
-   *
-   * @async
-   * @method onModuleInit
-   * @returns {Promise<void>} A promise that resolves when the module initialization is complete.
-   */
   async onModuleInit() {
     Logger.debug('User upload data consumer started');
     this.consumer.consume(

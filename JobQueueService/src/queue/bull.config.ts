@@ -6,5 +6,6 @@ export const BullConfig = BullModule.forRoot({
   redis: {
     host: 'localhost', // Redis server host
     port: 6379, // Redis server port
+    password: 'FortudeSmP@2023', // Redis server password
   },
 });

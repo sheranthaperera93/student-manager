@@ -4,6 +4,6 @@ import { ProducerService } from './producer/producer.service';
 
 @Module({
   providers: [ConsumerService, ProducerService],
-  exports: [ConsumerService, ProducerService],
+  exports: [ConsumerService, ProducerService]
 })
 export class KafkaModule {}
