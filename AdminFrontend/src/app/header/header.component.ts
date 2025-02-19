@@ -87,30 +87,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       case JOB_QUEUE_STATUS.SUCCESS:
         this.notificationService.showNotification(
           'success',
-          'User export success'
-        );
-        break;
-      case JOB_QUEUE_STATUS.FAILED:
-        this.notificationService.showNotification(
-          'error',
-          'User export failed. Try again later'
-        );
-        break;
-      default:
-        console.warn('Unknown job status:', parsedMsg.status);
-    }
-    this.fetchJobQueues();
-  }
-
-  handleOnExportJobChange(parsedMsg: {
-    job: JobQueueItem;
-    type: string;
-    status: number;
-  }) {
-    switch (parsedMsg.status) {
-      case JOB_QUEUE_STATUS.SUCCESS:
-        this.notificationService.showNotification(
-          'success',
           'User upload success'
         );
         break;
@@ -125,6 +101,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
     this.fetchJobQueues();
     this.studentService.refreshStudentList.next('reload-list');
+  }
+
+  handleOnExportJobChange(parsedMsg: {
+    job: JobQueueItem;
+    type: string;
+    status: number;
+  }) {
+    switch (parsedMsg.status) {
+      case JOB_QUEUE_STATUS.SUCCESS:
+        this.notificationService.showNotification(
+          'success',
+          'User export success'
+        );
+        break;
+      case JOB_QUEUE_STATUS.FAILED:
+        this.notificationService.showNotification(
+          'error',
+          'User export failed. Try again later'
+        );
+        break;
+      default:
+        console.warn('Unknown job status:', parsedMsg.status);
+    }
+    this.fetchJobQueues();
   }
 
   ngOnInit(): void {

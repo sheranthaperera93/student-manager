@@ -186,7 +186,7 @@ export class FileUploadService {
         {
           value: JSON.stringify({
             job: payload.job,
-            type: 'exports',
+            type: 'upload',
             status: payload.status,
           }),
         },
