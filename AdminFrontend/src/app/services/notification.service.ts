@@ -88,10 +88,10 @@ export class NotificationService {
       content: message,
       type: typeStyles[type],
       position: {
-        horizontal: 'right',
-        vertical: 'bottom',
+        horizontal: 'center',
+        vertical: 'top',
       },
-      animation: { type: 'fade', duration: 500 },
+      animation: { type: 'fade', duration: 2000 },
       height: 50,
     };
 

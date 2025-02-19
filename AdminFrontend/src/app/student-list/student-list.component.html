@@ -17,14 +17,14 @@
       </button>
     </div>
     <kendo-grid
-      [data]="gridData | async"
+      #grid
+      [data]="gridData"
       [loading]="loading"
       [skip]="pageState.skip"
       [pageSize]="pageState.take"
       [rowHeight]="36"
-      [height]="450"
+      [height]="350"
       scrollable="virtual"
-      (pageChange)="pageChange($event)"
     >
       <kendo-grid-column field="id" title="ID" [width]="100">
       </kendo-grid-column>

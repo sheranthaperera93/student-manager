@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Student, UpdateStudent } from '../model/student.model';
 import { StudentService } from '../services/student.service';
 import {
@@ -12,14 +12,8 @@ import {
 import { ExportParameters } from '../core/constants';
 import { State } from '@progress/kendo-data-query';
 
-import {
-  BehaviorSubject,
-  Observable,
-  Subscription,
-  switchMap,
-  tap,
-} from 'rxjs';
-import { GridDataResult } from '@progress/kendo-angular-grid';
+import { debounceTime, Observable, Subscription } from 'rxjs';
+import { GridComponent, GridDataResult } from '@progress/kendo-angular-grid';
 import { PageChangeEvent } from '@progress/kendo-angular-pager';
 import { UtilService } from '../services/util.service';
 import {
@@ -53,8 +47,9 @@ export class StudentListComponent implements OnInit, OnDestroy {
     take: 10,
   };
 
-  public gridData!: Observable<GridDataResult>;
-  private readonly stateChange = new BehaviorSubject<State>(this.pageState);
+  gridData: GridDataResult = { data: [], total: 0 };
+  @ViewChild('grid') private readonly grid!: GridComponent;
+
   private reloadListSubscription: Subscription = new Subscription();
   students$!: Observable<GridDataResult>;
   private deleteSubscription: Subscription = new Subscription();
@@ -66,40 +61,49 @@ export class StudentListComponent implements OnInit, OnDestroy {
     private readonly utilService: UtilService,
     private readonly dialogService: DialogService,
     private readonly notificationService: NotificationService
-  ) {
-    this.gridData = this.stateChange.pipe(
-      tap((state) => {
-        this.pageState = state;
-        this.loading = true;
-      }),
-      switchMap((state) => this.studentService.getStudents(state)),
-      tap(() => {
-        this.loading = false;
-      })
-    );
-  }
+  ) {}
 
   ngOnInit(): void {
-    this.stateChange.next(this.pageState);
     this.reloadListSubscription =
       this.studentService.refreshStudentList.subscribe(() => {
         this.refreshData();
       });
+    this.loadData();
+  }
+
+  public ngAfterViewInit(): void {
+    this.grid.pageChange
+      .pipe(debounceTime(500))
+      .subscribe((e) => this.pageChange(e));
   }
 
   ngOnDestroy(): void {
     this.reloadListSubscription.unsubscribe();
     if (this.updateSubscription) this.updateSubscription.unsubscribe();
     if (this.deleteSubscription) this.deleteSubscription.unsubscribe();
+    if (this.exportSubscription) this.exportSubscription.unsubscribe();
   }
 
-  public pageChange(state: PageChangeEvent): void {
-    this.stateChange.next(state);
+  pageChange(event: PageChangeEvent): void {
+    this.pageState.skip = event.skip;
+    this.loadData();
   }
 
   public refreshData = () => {
-    this.stateChange.next(this.pageState);
+    this.pageState = { skip: 0, take: 10 };
+    this.loadData();
   };
+
+  loadData() {
+    this.studentService
+      .getStudents(this.pageState)
+      .subscribe((res: { data: Student[]; total: number }) => {
+        this.gridData = {
+          data: res.data,
+          total: res.total,
+        };
+      });
+  }
 
   /**
    * Formats the date of birth to 'YYYY-MM-DD'.
@@ -153,8 +157,11 @@ export class StudentListComponent implements OnInit, OnDestroy {
         this.updateSubscription = this.studentService
           .updateStudent(student.id, updateData)
           .subscribe((response: Response) => {
-            this.pageState.skip = 0;
-            this.stateChange.next(this.pageState);
+            this.notificationService.showNotification(
+              'success',
+              'Student updated successfully'
+            );
+            this.refreshData();
           });
       }
     });
@@ -183,8 +190,11 @@ export class StudentListComponent implements OnInit, OnDestroy {
         this.deleteSubscription = this.studentService
           .deleteStudent(student.id)
           .subscribe((response: Response) => {
-            this.pageState.skip = 0;
-            this.stateChange.next(this.pageState); // Trigger state change
+            this.notificationService.showNotification(
+              'success',
+              'Student deleted successfully'
+            );
+            this.refreshData();
           });
       }
     });
