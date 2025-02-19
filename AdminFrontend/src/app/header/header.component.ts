@@ -23,7 +23,7 @@ import { Subscription } from 'rxjs';
 export class HeaderComponent implements OnInit, OnDestroy {
   public isUploadDialogVisible = false;
   public bellIcon: SVGIcon = bellIcon;
-  public menuIcon: SVGIcon = uploadIcon;
+  public uploadIcon: SVGIcon = uploadIcon;
   public showNotificationPopup = false;
   public hasFailedJobs: boolean = false;
 

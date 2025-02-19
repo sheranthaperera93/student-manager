@@ -7,7 +7,8 @@
 
   <kendo-appbar-section>
     <button kendoButton fillMode="flat" (click)="openUploadDialog()">
-      <kendo-svgicon [icon]="menuIcon"></kendo-svgicon>
+      <kendo-svgicon [icon]="uploadIcon"></kendo-svgicon>
+      Upload
     </button>
   </kendo-appbar-section>
 
@@ -20,6 +21,7 @@
         (click)="showNotificationPopup = !showNotificationPopup"
       >
         <kendo-svgicon [icon]="bellIcon"></kendo-svgicon>
+        Notifications
       </button>
       <kendo-badge
         *ngIf="getFailedJobCount() > 0"
@@ -54,5 +56,9 @@
   [margin]="{ horizontal: 10, vertical: 10 }"
   *ngIf="showNotificationPopup"
 >
-  <app-notifications *ngIf="jobQueue.length > 0" [items]="jobQueue" title="Notifications"></app-notifications>
+  <app-notifications
+    *ngIf="jobQueue.length > 0"
+    [items]="jobQueue"
+    title="Notifications"
+  ></app-notifications>
 </kendo-popup>
