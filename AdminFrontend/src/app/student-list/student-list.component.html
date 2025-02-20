@@ -40,8 +40,15 @@
           {{ calculateAge(dataItem.date_of_birth) }}
         </ng-template>
       </kendo-grid-column>
-      <kendo-grid-column title="Actions" [width]="100">
+      <kendo-grid-column title="Actions" [width]="130">
         <ng-template kendoGridCellTemplate let-dataItem>
+          <button
+            kendoButton
+            fillMode="flat"
+            (click)="onViewCoursersHandler(dataItem)"
+          >
+            <kendo-svgicon [icon]="viewIcon"></kendo-svgicon>
+          </button>
           <button
             kendoButton
             fillMode="flat"

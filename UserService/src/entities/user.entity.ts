@@ -1,12 +1,25 @@
-import { Field, ID, ObjectType, InputType, PartialType } from '@nestjs/graphql';
+import {
+  Field,
+  ID,
+  ObjectType,
+  InputType,
+  PartialType,
+  Directive,
+} from '@nestjs/graphql';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { IsString, Length, IsNotEmpty, IsEmail, IsDateString } from 'class-validator';
-
+import {
+  IsString,
+  Length,
+  IsNotEmpty,
+  IsEmail,
+  IsDateString,
+} from 'class-validator';
 
 @Entity('user')
+@Directive('@key(fields: "id")')
 @ObjectType()
 export class User {
-  @Field(() => ID)
+  @Field((type) => ID)
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -28,7 +41,7 @@ export class UserInput {
   @Field()
   @IsString()
   @Length(1, 255)
-  @IsNotEmpty() 
+  @IsNotEmpty()
   name: string;
 
   @Field()

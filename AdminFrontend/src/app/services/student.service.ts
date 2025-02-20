@@ -9,6 +9,8 @@ import { UpdateStudent } from '../model/student.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { ExportParameters } from '../core/constants';
+import { Course } from '../model/course.model';
+import { Response } from '../model/response.model';
 
 @Injectable({
   providedIn: 'root',
@@ -51,7 +53,28 @@ export class StudentService {
       );
   };
 
-  updateStudent = (id: number, data: UpdateStudent) => {
+  getCoursesForStudentId = (studentId: number): Observable<Course[]> => {
+    return this.apollo
+      .query({
+        query: gql`
+          query getUser($id: ID!) {
+            getUser(id: $id) {
+              courses {
+                id
+                name
+                description
+              }
+            }
+          }
+        `,
+        variables: {
+          id: studentId,
+        },
+      })
+      .pipe(map((result: any) => result.data.getUser.courses));
+  };
+
+  updateStudent = (id: number, data: UpdateStudent): Observable<Response> => {
     return this.apollo
       .mutate({
         mutation: gql`
@@ -75,7 +98,7 @@ export class StudentService {
       );
   };
 
-  deleteStudent = (id: number) => {
+  deleteStudent = (id: number): Observable<Response> => {
     return this.apollo
       .mutate({
         mutation: gql`
@@ -104,7 +127,7 @@ export class StudentService {
     return this.http.post(environment.userService + '/users/upload', formData);
   };
 
-  exportData = (params: ExportParameters): Observable<any> => {
+  exportData = (params: ExportParameters): Observable<Response> => {
     return this.apollo
       .mutate({
         mutation: gql`
