@@ -44,7 +44,7 @@ export class StudentService {
         fetchPolicy: 'cache-and-network',
       })
       .valueChanges.pipe(
-        map((result: any) => ({
+        map((result: any) => <GridDataResult>({
           data: result.data.getUsers.items,
           total: result.data.getUsers.total,
         }))

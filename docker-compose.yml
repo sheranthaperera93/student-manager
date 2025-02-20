@@ -12,34 +12,57 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  # admin-frontend:
+  #   image: admin-frontend
+  #   container_name: admin-frontend
+  #   build: ./AdminFrontend
+  #   ports:
+  #     - "3000:80"
+  #   networks:
+  #     - mynetwork
+
   # federation-gateway:
+  #   image: federation-gateway
+  #   container_name: federation-gateway
   #   build: .
   #   ports:
   #     - "3001:3001"
   #   depends_on:
-  #     - users
-  #     - notifications
+  #     - user-service
+  #     - job-queue-service
+  #   networks:
+  #     - mynetwork
 
-  # users:
-  #   image: users-service
+  # user-service:
+  #   image: user-service
   #   container_name: user-service
+  #   build: .
   #   volumes:
-  #     - shared_data:/app/dist/uploads
+  #     - user_data:/app/dist/uploads
   #   ports:
   #     - "3002:3002"
+  #   networks:
+  #     - mynetwork
 
-  # job-queue:
+  # job-queue-service:
   #   image: job-queue-service
   #   container_name: job-queue-service
+  #   build: .
   #   volumes:
-  #     - shared_data:/app/dist/uploads
+  #     - job_queue_data:/app/dist/job-queue/uploads
   #   ports:
   #     - 3006:3006
+  #   networks:
+  #     - mynetwork
 
-  # notifications:
-  #   image: notifications-service-image
-  #   ports:
-  #     - "3003:3003"
+  # notification-service:
+    # image: notification-service
+    # container_name: notification-service
+    # build: .
+    # ports:
+    #   - "3003:3003"
+    # networks:
+    #   - mynetwork
 
   redis:
     image: redis:latest
@@ -93,7 +116,13 @@ volumes:
     driver: local
   redis_data:
     driver: local
-  shared_data:
+  user_data:
+    driver: local
+  job_queue_data:
     driver: local
   kafka_data:
     driver: local
+
+networks:
+  mynetwork:
+    driver: bridge

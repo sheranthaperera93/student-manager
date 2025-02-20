@@ -8,15 +8,19 @@ import { JobQueue } from 'src/entities/job_queue.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { FileExportService } from 'src/file-processing/file-export/file-export.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    BullModule.registerQueue({
-      name: 'bull-queue',
-      redis: {
-        host: 'localhost', // Redis server host
-        port: 6379, // Redis server port
-      },
+    BullModule.forRootAsync({
+      useFactory: (configService) => ({
+        name: 'bull-queue',
+        redis: {
+          host: configService.get('REDIS_HOST'), // Redis server host
+          port: configService.get('REDIS_PORT'), // Redis server port
+        },
+      }),
+      inject: [ConfigService]
     }),
     TypeOrmModule.forFeature([JobQueue, User]),
     KafkaModule,
