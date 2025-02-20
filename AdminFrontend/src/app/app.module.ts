@@ -37,6 +37,7 @@ import { StudentListComponent } from './student-list/student-list.component';
 import { ExportPopupComponent } from './shared/export-popup/export-popup.component';
 import { GraphQLModule } from './core/graphql/graphql.module';
 import { SocketService } from './services/socket.service';
+import { CourseListComponent } from './course-list/course-list.component';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { SocketService } from './services/socket.service';
     NotificationsComponent,
     JobItemCardComponent,
     ExportPopupComponent,
+    CourseListComponent,
   ],
   imports: [
     BrowserModule,
