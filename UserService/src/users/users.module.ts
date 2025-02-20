@@ -20,6 +20,7 @@ import { KafkaModule } from 'src/kafka/kafka.module';
       driver: ApolloFederationDriver,
       autoSchemaFile: {
         federation: 2,
+        path: './src/user-schema.gql',
       },
       plugins: [ApolloServerPluginInlineTrace()],
     }),

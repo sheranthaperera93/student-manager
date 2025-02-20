@@ -9,8 +9,7 @@ import {
 import { UsersService } from './users.service';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { Response } from './models/response.model';
-import { UpdateUserPayload, User } from 'src/entities/user.entity';
-import { BulkInsertDTO } from './models/bulk-insert-dto-model';
+import { UpdateUserPayload, User, UserInput } from 'src/entities/user.entity';
 
 @Resolver((of) => User)
 export class UsersResolver {
@@ -27,16 +26,17 @@ export class UsersResolver {
   @Query((returns) => User)
   async getUser(
     @Args({ name: 'id', type: () => ID }) id: number,
-  ): Promise<User|null> {
+  ): Promise<User | null> {
     return this.userService.findById(id);
   }
 
   @ResolveReference()
-  resolveReference(reference: {
+  async resolveReference(reference: {
     __typename: string;
-    id: number;
-  }): Promise<User|null> {
-    return this.userService.findById(reference.id);
+    id: string;
+  }): Promise<User> {
+    // Fetch user by ID logic
+    return await this.userService.findById(parseInt(reference.id));
   }
 
   @Mutation((returns) => Response)
@@ -57,7 +57,7 @@ export class UsersResolver {
   async deleteUser(
     @Args({ name: 'id', type: () => ID }) id: number,
   ): Promise<Response> {
-    const resp =  await this.userService.delete(id);
+    const resp = await this.userService.delete(id);
     let response: Response = {
       message: resp,
       data: { deleted: true },
@@ -67,9 +67,9 @@ export class UsersResolver {
 
   @Mutation((returns) => Response)
   async bulkCreate(
-    @Args({ name: 'data', type: () => [BulkInsertDTO] }) data: [BulkInsertDTO],
+    @Args({ name: 'data', type: () => [UserInput] }) data: [UserInput],
   ): Promise<Response> {
-    const resp =  await this.userService.createBulk(data);
+    const resp = await this.userService.createBulk(data);
     let response: Response = {
       message: resp,
       data: { bulkCreated: true },
@@ -81,12 +81,11 @@ export class UsersResolver {
   async exportUsers(
     @Args({ name: 'age', type: () => String }) params: string,
   ): Promise<Response> {
-    const resp =  await this.userService.exportUsers(params);
+    const resp = await this.userService.exportUsers(params);
     let response: Response = {
       message: resp,
       data: { exported: true },
     };
     return response;
   }
-
 }

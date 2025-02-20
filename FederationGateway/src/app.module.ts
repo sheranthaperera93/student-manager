@@ -12,13 +12,20 @@ import { ConfigService } from '@nestjs/config';
         gateway: {
           supergraphSdl: new IntrospectAndCompose({
             subgraphs: [
-              { name: 'users', url: 'http://localhost:3002/graphql' },
-              { name: 'jobqueue', url: 'http://localhost:3006/graphql' },
+              { name: 'users', url: configService.get('USERS_GRAPHQL_URL') },
+              {
+                name: 'job-queue',
+                url: configService.get('JOB_QUEUE_GRAPHQL_URL'),
+              },
+              {
+                name: 'courses',
+                url: configService.get('COURSES_GRAPHQL_URL'),
+              },
             ],
           }),
         },
       }),
-      inject: [ConfigService]
+      inject: [ConfigService],
     }),
   ],
   controllers: [],

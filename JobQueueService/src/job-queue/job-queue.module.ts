@@ -21,6 +21,7 @@ import { JobQueueController } from './job-queue.controller';
       driver: ApolloFederationDriver,
       autoSchemaFile: {
         federation: 2,
+        path: './src/job-queue-schema.gql',
       },
       plugins: [ApolloServerPluginInlineTrace()],
     }),

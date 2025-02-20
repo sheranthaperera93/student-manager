@@ -8,6 +8,7 @@ import {
   SVGIcon,
   trashIcon,
   arrowRotateCwIcon,
+  eyeIcon,
 } from '@progress/kendo-svg-icons';
 import { ExportParameters } from '../core/constants';
 import { State } from '@progress/kendo-data-query';
@@ -25,6 +26,7 @@ import {
 import { StudentUpdateComponent } from '../student-update/student-update.component';
 import { Response } from '../model/response.model';
 import { NotificationService } from '../services/notification.service';
+import { CourseListComponent } from '../course-list/course-list.component';
 
 @Component({
   selector: 'app-student-list',
@@ -38,6 +40,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
   public carrotDownIcon: SVGIcon = caretAltDownIcon;
   public carrotUpIcon: SVGIcon = caretAltUpIcon;
   public refreshIcon: SVGIcon = arrowRotateCwIcon;
+  public viewIcon: SVGIcon = eyeIcon;
   public showExportPopup: boolean = false;
 
   // Paging variables
@@ -217,5 +220,20 @@ export class StudentListComponent implements OnInit, OnDestroy {
         );
       });
     this.showExportPopup = false;
+  };
+
+  onViewCoursersHandler = (student: Student) => {
+    //This method opens a dialog box which contains the coursers followed by the student
+    const dialogRef: DialogRef = this.dialogService.open({
+      title: 'Coursers followed by ' + student.name,
+      content: CourseListComponent,
+      actions: [{ text: 'Close', themeColor: 'primary' }],
+      width: 600,
+      height: 400,
+      minWidth: 250,
+    });
+
+    const component = dialogRef.content.instance as CourseListComponent;
+    component.fetchCourseList(student.id);
   };
 }

@@ -2,7 +2,7 @@ import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateUserPayload, User } from 'src/entities/user.entity';
+import { UpdateUserPayload, User, UserInput } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { CustomException } from 'src/core/custom-exception';
@@ -16,13 +16,13 @@ export class UsersService {
     private readonly kafka: ProducerService,
   ) {}
 
-  async findAll({
+  findAll = async ({
     skip,
     take,
   }: {
     skip?: number;
     take?: number;
-  }): Promise<PaginatedUsers> {
+  }): Promise<PaginatedUsers> => {
     const [items, total] = await this.userRepository.findAndCount({
       order: {
         id: 'ASC',
@@ -31,16 +31,16 @@ export class UsersService {
       take,
     });
     return { items, total };
-  }
+  };
 
-  findById(id: number): Promise<User | null> {
-    return this.userRepository.findOneBy({ id });
-  }
+  findById = async (id: number): Promise<User> => {
+    return this.userRepository.findOneByOrFail({ id });
+  };
 
-  async update(
+  update = async (
     id: number,
     updateUserInput: UpdateUserPayload,
-  ): Promise<string> {
+  ): Promise<string> => {
     try {
       const user = await this.findById(id);
       if (!user) {
@@ -62,9 +62,9 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
-  }
+  };
 
-  async delete(id: number): Promise<string> {
+  delete = async (id: number): Promise<string> => {
     try {
       const user = await this.findById(id);
       if (!user) {
@@ -85,16 +85,9 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
-  }
+  };
 
-  /**
-   * Creates multiple user records in bulk.
-   *
-   * @param {User[]} userRecords - An array of user records to be created.
-   * @returns {Promise<string>} A promise that resolves to a success message if the users are created successfully.
-   * @throws {CustomException} Throws a CustomException if the bulk user creation fails.
-   */
-  async createBulk(userRecords: User[]): Promise<string> {
+  createBulk = async (userRecords: UserInput[]): Promise<string> => {
     try {
       await this.userRepository.save(userRecords);
       return 'Users created successfully';
@@ -106,7 +99,7 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
-  }
+  };
 
   handleUploadProcess = async (
     file: Express.Multer.File,
@@ -117,9 +110,9 @@ export class UsersService {
     return { filePath, fileName };
   };
 
-  async uploadFile(
+  uploadFile = async (
     file: Express.Multer.File,
-  ): Promise<{ fileName: string; filePath: string }> {
+  ): Promise<{ fileName: string; filePath: string }> => {
     const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
     if (!existsSync(join(__dirname, '../', 'uploads'))) {
       mkdirSync(join(__dirname, '../', 'uploads'));
@@ -142,7 +135,7 @@ export class UsersService {
         ),
       );
     });
-  }
+  };
 
   sendUploadJob = async (filePath: string, fileName: string) => {
     const payload = {
@@ -156,7 +149,7 @@ export class UsersService {
     });
   };
 
-  getFile(fileName: string): string {
+  getFile = (fileName: string): string => {
     console.log('fileName', fileName);
     const filePath = join(__dirname, '../', 'uploads', fileName);
     if (!existsSync(filePath)) {
@@ -177,7 +170,7 @@ export class UsersService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
+  };
 
   exportUsers = async (age: string) => {
     const payload = {
@@ -190,5 +183,4 @@ export class UsersService {
     });
     return 'User export job created successfully';
   };
-
 }
