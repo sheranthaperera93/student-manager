@@ -1,0 +1,21 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Course {
+  id: ID!
+  name: String!
+  description: String!
+  userId: ID!
+  user: User!
+}
+
+type User {
+  id: ID!
+  courses: [Course!]!
+}
+
+type Query {
+  course(id: Int!): Course!
+  courses: [Course!]!
+}
