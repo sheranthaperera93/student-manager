@@ -53,6 +53,9 @@ services:
       - KAFKA_CLIENT_ID=nestjs-consumer-server
     volumes:
       - user_data:/app/dist/uploads
+    depends_on:
+      - db
+      - kafka
     ports:
       - "3002:3002"
     networks:
@@ -75,6 +78,10 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=FortudeSmP@2023
+    depends_on:
+      - db
+      - redis
+      - kafka
     ports:
       - 3006:3006
     networks:
@@ -87,6 +94,8 @@ services:
     environment:
       - KAFKA_BROKER=kafka:9092
       - KAFKA_CLIENT_ID=nestjs-consumer-server
+    depends_on:
+      - kafka
     ports:
       - "3003:3003"
     networks:
@@ -104,6 +113,11 @@ services:
       - POSTGRES_DATABASE=studentmanagement
       - KAFKA_BROKER=kafka:9092
       - KAFKA_CLIENT_ID=nestjs-consumer-server
+    depends_on:
+      - db
+      - kafka
+    ports:
+      - "3004:3004"
     networks:
       - mynetwork
 
@@ -146,6 +160,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
+    depends_on:
+      - zookeeper
     networks:
       - mynetwork
 
