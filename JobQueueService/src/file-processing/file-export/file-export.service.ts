@@ -4,10 +4,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { Between, Repository } from 'typeorm';
-
+import axios from 'axios';
 import * as xlsx from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -20,8 +18,6 @@ import { CustomException } from 'src/core/custom-exception';
 @Injectable()
 export class FileExportService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     private readonly kafka: ProducerService,
     private readonly jobQueueService: JobQueueService,
   ) {}
@@ -49,18 +45,19 @@ export class FileExportService {
         today.getMonth(),
         today.getDate(),
       );
-
-      // Fetch users which matches the age criteria
-      const users: User[] = await this.userRepository.find({
-        where: { date_of_birth: Between(toAgeDate, fromAgeDate) },
+      // Since the from and to date of births are in reverse order
+      const users: User[] = await this.fetchFilteredUserRecords({
+        dateOfBirth: {
+          from: toAgeDate.toISOString().split('T')[0],
+          to: fromAgeDate.toISOString().split('T')[0],
+        },
       });
-
       // Prepare data set and write to file
       const { fileName, filePath } = await this.prepareDataSet(users);
 
       jobItem.jobData = JSON.stringify({ age: params.age, fileName, filePath });
       // Update Job status and send notification
-      await this.notifyJobUpdate(jobItem);
+      await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
       Logger.error('Error while handling user export', error);
       if (error.name === NotFoundException.name) {
@@ -80,6 +77,40 @@ export class FileExportService {
       }
     }
   }
+
+  fetchFilteredUserRecords = async (params: {
+    dateOfBirth: { from: string; to: string };
+  }): Promise<User[]> => {
+    try {
+      const response = await axios.post(
+        'http://localhost:3001/graphql',
+        {
+          query: `
+            query getUsers($dateOfBirth: DateOfBirthRangeInput!) {
+              getUsers(dateOfBirth: $dateOfBirth) {
+                items {
+                  id
+                  name
+                  email
+                  date_of_birth
+                }
+              }
+            }
+          `,
+          variables: { dateOfBirth: params.dateOfBirth },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      return response.data.data.getUsers.items;
+    } catch (error) {
+      Logger.error('Error fetching filtered user records: ', error);
+      throw new Error('Failed to fetch filtered user records');
+    }
+  };
 
   async prepareDataSet(
     records: User[],
@@ -117,24 +148,23 @@ export class FileExportService {
     }
   }
 
-  /**
-   * Sends upload data to a Kafka topic.
-   *
-   * @param {User[]} records - An array of user records to be uploaded.
-   * @param {JobQueue} jobInfo - Information about the job queue.
-   * @returns {Promise<void>} A promise that resolves when the data has been sent.
-   */
-  notifyJobUpdate = async (jobInfo: JobQueue): Promise<void> => {
+  notifyJobUpdate = async (
+    jobInfo: JobQueue,
+    status: JOB_QUEUE_STATUS,
+  ): Promise<void> => {
     const payload = {
       job: jobInfo,
-      status: JOB_QUEUE_STATUS.SUCCESS,
+      status: status,
       action: 'update-job-status',
     };
     Logger.log(
       'Updating job status and sending message to notification service',
-      payload,
     );
-    await this.jobQueueService.updateJobStatus(payload.job.id, payload.status, jobInfo);
+    await this.jobQueueService.updateJobStatus(
+      payload.job.id,
+      payload.status,
+      jobInfo,
+    );
     await this.kafka.produce({
       topic: 'notifications',
       messages: [

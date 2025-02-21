@@ -6,7 +6,6 @@ import { KafkaModule } from 'src/kafka/kafka.module';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
 import { FileExportService } from 'src/file-processing/file-export/file-export.service';
 
 @Module({
@@ -18,7 +17,7 @@ import { FileExportService } from 'src/file-processing/file-export/file-export.s
         port: 6379, // Redis server port
       },
     }),
-    TypeOrmModule.forFeature([JobQueue, User]),
+    TypeOrmModule.forFeature([JobQueue]),
     KafkaModule,
   ],
   providers: [QueueProcessor, FileUploadService, FileExportService, JobQueueService],

@@ -6,13 +6,12 @@ import { FileUploadService } from './file-upload/file-upload.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
-import { User } from 'src/entities/user.entity';
 import { FileExportService } from './file-export/file-export.service';
 import { FileExportConsumerService } from './file-export/file-export-consumer.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([JobQueue, User]),
+    TypeOrmModule.forFeature([JobQueue]),
     KafkaModule,
     QueueModule,
   ],

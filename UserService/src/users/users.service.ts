@@ -8,6 +8,7 @@ import { PaginatedUsers } from './models/paginated-users.model';
 import { CustomException } from 'src/core/custom-exception';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 import { UserInputDTO } from './models/user-input.dto';
+import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
 
 @Injectable()
 export class UsersService {
@@ -20,17 +21,33 @@ export class UsersService {
   findAll = async ({
     skip,
     take,
+    dateOfBirth,
   }: {
     skip?: number;
     take?: number;
+    dateOfBirth?: DateOfBirthRangeInput;
   }): Promise<PaginatedUsers> => {
-    const [items, total] = await this.userRepository.findAndCount({
-      order: {
-        id: 'ASC',
-      },
-      skip,
-      take,
-    });
+    const query = this.userRepository.createQueryBuilder('user');
+    if (dateOfBirth) {
+      if (dateOfBirth.from) {
+        query.andWhere('user.date_of_birth >= :from', {
+          from: dateOfBirth.from,
+        });
+      }
+      if (dateOfBirth.to) {
+        query.andWhere('user.date_of_birth <= :to', { to: dateOfBirth.to });
+      }
+    }
+
+    if (skip !== undefined) {
+      query.skip(skip);
+    }
+
+    if (take !== undefined) {
+      query.take(take);
+    }
+
+    const [items, total] = await query.getManyAndCount();
     return { items, total };
   };
 

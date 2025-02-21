@@ -48,7 +48,7 @@ export class JobQueueService {
   async updateJobStatus(
     jobId: number,
     status: JOB_QUEUE_STATUS,
-    jobInfoPayload?: JobQueue
+    jobInfoPayload?: JobQueue,
   ): Promise<void> {
     const job = await this.jobQueueRepository
       .findOneByOrFail({ id: jobId })
@@ -67,6 +67,7 @@ export class JobQueueService {
       job.jobCompleteDate = new Date();
     }
     job.status = status;
+    Logger.log('Updating job status', { job });
     await this.jobQueueRepository.update({ id: job.id }, job);
   }
 

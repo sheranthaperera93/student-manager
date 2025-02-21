@@ -11,6 +11,7 @@ import { PaginatedUsers } from './models/paginated-users.model';
 import { Response } from './models/response.model';
 import { User } from 'src/entities/user.entity';
 import { UserInputDTO } from './models/user-input.dto';
+import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
 
 @Resolver((of) => User)
 export class UsersResolver {
@@ -20,8 +21,9 @@ export class UsersResolver {
   async getUsers(
     @Args('skip', { type: () => Number, nullable: true }) skip?: number,
     @Args('take', { type: () => Number, nullable: true }) take?: number,
+    @Args('dateOfBirth', { type: () => DateOfBirthRangeInput, nullable: true }) dateOfBirth?: DateOfBirthRangeInput,
   ): Promise<PaginatedUsers> {
-    return this.userService.findAll({ skip, take });
+    return this.userService.findAll({ skip, take, dateOfBirth });
   }
 
   @Query((returns) => User)

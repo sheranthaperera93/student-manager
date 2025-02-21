@@ -14,7 +14,7 @@ import { JobQueue } from 'src/entities/job_queue.entity';
 import { User } from 'src/entities/user.entity';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { ProducerService } from 'src/kafka/producer/producer.service';
-import { BulkUser } from 'src/models/bulk-user.model';
+import { UserInputDTO } from 'src/models/user-input.model';
 import { Repository } from 'typeorm';
 import * as xlsx from 'xlsx';
 
@@ -23,8 +23,6 @@ export class FileUploadService {
   constructor(
     @InjectRepository(JobQueue)
     private readonly jobQueueRepository: Repository<JobQueue>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     private readonly kafka: ProducerService,
     private readonly jobQueueService: JobQueueService,
   ) {}
@@ -48,12 +46,12 @@ export class FileUploadService {
       const tmpFilePath = path.join(__dirname, 'uploads', fileName);
       fs.writeFileSync(tmpFilePath, response.data);
       Logger.debug(`File temporary saved to ${tmpFilePath}`);
-      const records: BulkUser[] = this.extractExcelContent(tmpFilePath);
+      const records: UserInputDTO[] = this.extractExcelContent(tmpFilePath);
       Logger.log('File deleted from temporary location');
       fs.unlinkSync(tmpFilePath);
       Logger.debug('Insert records to database');
-      await this.userRepository.save(records);
-      await this.notifyJobUpdate(jobItem);
+      await this.insertBulkRecords(records);
+      await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
       Logger.error('Error processing user bulk upload: ', error);
       throw new CustomException(
@@ -68,7 +66,9 @@ export class FileUploadService {
   handleRetryJobQueueItem = async (message: string) => {
     const { jobId } = JSON.parse(message);
     try {
-      const jobItem = await this.jobQueueRepository.findOneByOrFail({ id: jobId });
+      const jobItem = await this.jobQueueRepository.findOneByOrFail({
+        id: jobId,
+      });
       const { fileName } = JSON.parse(jobItem.jobData);
       const response = await axios.get(
         `http://localhost:3002/api/users/upload/${fileName}`,
@@ -80,15 +80,22 @@ export class FileUploadService {
       }
       const tmpFilePath = path.join(__dirname, 'uploads', fileName);
       fs.writeFileSync(tmpFilePath, response.data);
-      Logger.log(`File temporary saved to ${tmpFilePath}`);
-      const records: BulkUser[] = this.extractExcelContent(tmpFilePath);
-      Logger.log('File deleted from temporary location');
+      Logger.debug(`File temporary saved to ${tmpFilePath}`);
+      const records: UserInputDTO[] = this.extractExcelContent(tmpFilePath);
+      Logger.debug('File deleted from temporary location');
       fs.unlinkSync(tmpFilePath);
-      Logger.log('Insert records to database');
-      await this.userRepository.save(records);
-      await this.notifyJobUpdate(jobItem);
+      Logger.debug('Insert records to database');
+      await this.insertBulkRecords(records);
+      await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
-      Logger.error('Error processing user retry bulk upload: ', {jobId, error});
+      const jobItem = await this.jobQueueRepository.findOneByOrFail({
+        id: jobId,
+      });
+      await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.FAILED);
+      Logger.error('Error processing user retry bulk upload: ', {
+        jobId,
+        error,
+      });
       if (error.name === NotFoundException.name) {
         throw new CustomException(
           error.message,
@@ -96,14 +103,40 @@ export class FileUploadService {
           error,
           HttpStatus.NOT_FOUND,
         );
-      } else {
-        throw new CustomException(
-          'Error while processing user retry bulk upload',
-          1010,
-          error,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
       }
+      throw new CustomException(
+        'Error while processing user retry bulk upload',
+        1010,
+        error,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  };
+
+  insertBulkRecords = async (records: UserInputDTO[]) => {
+    try {
+      const response = await axios.post(
+        'http://localhost:3001/graphql',
+        {
+          query: `
+            mutation bulkCreate($data: [UserInputDTO!]!) {
+              bulkCreate(data: $data) {
+                message
+              }
+            }
+          `,
+          variables: { data: records },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      return response.data.data.bulkCreate.message;
+    } catch (error) {
+      Logger.error('Error inserting bulk records: ', error);
+      throw new Error('Failed to insert bulk records');
     }
   };
 
@@ -126,12 +159,12 @@ export class FileUploadService {
    * const users = extractExcelContent('/path/to/excel/file.xlsx');
    * console.log(users);
    */
-  extractExcelContent(filePath: string): Array<BulkUser> {
+  extractExcelContent(filePath: string): Array<UserInputDTO> {
     try {
       const workbook = xlsx.readFile(filePath);
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-      const records: BulkUser[] = jsonData
+      const records: UserInputDTO[] = jsonData
         .filter((array: any) => array.length > 0)
         .slice(0)
         .map((row: any) => ({
@@ -142,8 +175,8 @@ export class FileUploadService {
       Logger.log('Records created', records);
       return records;
     } catch (error) {
-      Logger.error("Failed to extract excel file content", error.message);
-      throw new Error("Failed to extract excel file content");
+      Logger.error('Failed to extract excel file content', error.message);
+      throw new Error('Failed to extract excel file content');
     }
   }
 
@@ -156,9 +189,8 @@ export class FileUploadService {
    * @param excelDate - The Excel date number to convert.
    * @returns A string representing the date in the format YYYY-MM-DD.
    */
-  convertExcelDate(excelDate: number): string {
-    const date = new Date((excelDate - 25569) * 86400 * 1000);
-    return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  convertExcelDate(excelDate: number): Date {
+    return new Date((excelDate - 25569) * 86400 * 1000);
   }
 
   /**
@@ -167,15 +199,17 @@ export class FileUploadService {
    * @param {JobQueue} jobInfo - Information about the job queue.
    * @returns {Promise<void>} A promise that resolves when the data has been sent.
    */
-  notifyJobUpdate = async (jobInfo: JobQueue): Promise<void> => {
+  notifyJobUpdate = async (
+    jobInfo: JobQueue,
+    status: JOB_QUEUE_STATUS,
+  ): Promise<void> => {
     const payload = {
       job: jobInfo,
-      status: JOB_QUEUE_STATUS.SUCCESS,
+      status: status,
       action: 'update-job-status',
     };
     Logger.log(
       'Updating job status and sending message to notification service',
-      payload,
     );
     await this.jobQueueService.updateJobStatus(jobInfo.id, payload.status);
     await this.kafka.produce({
