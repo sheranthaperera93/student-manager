@@ -2,11 +2,12 @@ import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UpdateUserPayload, User, UserInput } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { User } from 'src/entities/user.entity';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { CustomException } from 'src/core/custom-exception';
 import { ProducerService } from 'src/kafka/producer/producer.service';
+import { UserInputDTO } from './models/user-input.dto';
 
 @Injectable()
 export class UsersService {
@@ -39,55 +40,55 @@ export class UsersService {
 
   update = async (
     id: number,
-    updateUserInput: UpdateUserPayload,
+    updateUserInput: UserInputDTO,
   ): Promise<string> => {
     try {
       const user = await this.findById(id);
-      if (!user) {
-        throw new CustomException(
-          'User not found',
-          1004,
-          {},
-          HttpStatus.BAD_REQUEST,
-        );
-      }
       Object.assign(user, updateUserInput);
       await this.userRepository.update({ id: user.id }, user);
       return 'User updated successfully';
     } catch (error) {
+      if (error.name === EntityNotFoundError.name) {
+        throw new CustomException(
+          'Failed to update the user record: User not found in the system.',
+          1004,
+          {},
+          HttpStatus.NOT_FOUND,
+        );
+      }
       throw new CustomException(
-        'User update failed',
-        1004,
+        'Failed to update the user record: System encountered an unexpected issue.',
+        1005,
         error,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   };
 
   delete = async (id: number): Promise<string> => {
     try {
-      const user = await this.findById(id);
-      if (!user) {
-        throw new CustomException(
-          'User not found',
-          1004,
-          {},
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      await this.findById(id);
       await this.userRepository.delete({ id });
       return 'User deleted successfully';
     } catch (error) {
+      if (error.name === EntityNotFoundError.name) {
+        throw new CustomException(
+          'Failed to delete the user record: User not found in the system.',
+          1004,
+          error,
+          HttpStatus.NOT_FOUND,
+        );
+      }
       throw new CustomException(
-        'User delete failed',
-        1004,
+        'Failed to delete the user record: System encountered an unexpected issue.',
+        1005,
         error,
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   };
 
-  createBulk = async (userRecords: UserInput[]): Promise<string> => {
+  createBulk = async (userRecords: UserInputDTO[]): Promise<string> => {
     try {
       await this.userRepository.save(userRecords);
       return 'Users created successfully';
@@ -104,72 +105,61 @@ export class UsersService {
   handleUploadProcess = async (
     file: Express.Multer.File,
   ): Promise<{ fileName: string; filePath: string }> => {
-    const { fileName, filePath } = await this.uploadFile(file);
-    Logger.log('FileName', fileName);
-    await this.sendUploadJob(filePath, fileName);
-    return { filePath, fileName };
+    try {
+      const { fileName, filePath } = await this.uploadFile(file);
+      const payload = {
+        filePath: filePath,
+        fileName: fileName,
+        action: 'upload',
+      };
+      await this.kafka.produce({
+        topic: 'user-upload',
+        messages: [{ value: JSON.stringify(payload) }],
+      });
+      return { filePath, fileName };
+    } catch (error) {
+      throw new CustomException(
+        'Failed to write user upload content to file',
+        1006,
+        error,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   };
 
   uploadFile = async (
     file: Express.Multer.File,
   ): Promise<{ fileName: string; filePath: string }> => {
     const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
+    // Create directory if not exists
     if (!existsSync(join(__dirname, '../', 'uploads'))) {
       mkdirSync(join(__dirname, '../', 'uploads'));
     }
     const filePath = join(__dirname, '../', 'uploads', fileName);
-
+    Logger.debug('Upload file details', { fileName, filePath });
     return await new Promise((resolve, reject) => {
       const writeStream = createWriteStream(filePath);
       writeStream.write(file.buffer);
       writeStream.end();
       writeStream.on('finish', () => resolve({ fileName, filePath }));
-      writeStream.on('error', (error) =>
-        reject(
-          new CustomException(
-            'Failed on file upload',
-            1005,
-            error,
-            HttpStatus.BAD_REQUEST,
-          ),
-        ),
-      );
-    });
-  };
-
-  sendUploadJob = async (filePath: string, fileName: string) => {
-    const payload = {
-      filePath: filePath,
-      fileName: fileName,
-      action: 'upload',
-    };
-    await this.kafka.produce({
-      topic: 'user-upload',
-      messages: [{ value: JSON.stringify(payload) }],
+      writeStream.on('error', (error) => {
+        Logger.error('Failed to write upload content to file', error);
+        reject(new Error('Failed to write user upload content to file'));
+      });
     });
   };
 
   getFile = (fileName: string): string => {
-    console.log('fileName', fileName);
     const filePath = join(__dirname, '../', 'uploads', fileName);
     if (!existsSync(filePath)) {
       throw new CustomException(
         'File not found',
-        1006,
+        1007,
         {},
         HttpStatus.NOT_FOUND,
       );
     }
-    try {
-      return filePath;
-    } catch (error) {
-      throw new CustomException(
-        'Failed to read file',
-        1007,
-        error,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return filePath;
   };
 
   exportUsers = async (age: string) => {

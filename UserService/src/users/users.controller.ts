@@ -22,7 +22,7 @@ export class UsersController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<Response> {
     const uploadDetails = await this.usersService.handleUploadProcess(file);
-    return { message: 'Upload OK', data: uploadDetails };
+    return { message: 'File upload job initiated successfully', data: uploadDetails };
   }
 
   @Get('upload/:fileName')

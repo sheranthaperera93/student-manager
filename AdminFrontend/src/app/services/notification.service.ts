@@ -69,7 +69,8 @@ export class NotificationService {
    */
   showNotification(
     type: 'success' | 'error' | 'warning' | 'info' | 'default',
-    message: string
+    message: string,
+    configurations?: Partial<NotificationSettings>
   ) {
     const typeStyles: {
       [key: string]: {
@@ -87,12 +88,14 @@ export class NotificationService {
     const state: NotificationSettings = {
       content: message,
       type: typeStyles[type],
+      hideAfter: 2000,
       position: {
         horizontal: 'center',
         vertical: 'top',
       },
-      animation: { type: 'fade', duration: 2000 },
+      animation: { type: 'fade', duration: 1000 },
       height: 50,
+      ...configurations
     };
 
     this.notificationService.show(state);
