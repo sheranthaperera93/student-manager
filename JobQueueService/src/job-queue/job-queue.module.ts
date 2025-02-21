@@ -10,13 +10,12 @@ import {
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
 import { JobQueueResolver } from './job-queue.resolver';
-import { User } from 'src/entities/user.entity';
 import { QueueModule } from 'src/queue/queue.module';
 import { JobQueueController } from './job-queue.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([JobQueue, User]),
+    TypeOrmModule.forFeature([JobQueue]),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
       autoSchemaFile: {

@@ -9,7 +9,9 @@ import {
 import { UsersService } from './users.service';
 import { PaginatedUsers } from './models/paginated-users.model';
 import { Response } from './models/response.model';
-import { UpdateUserPayload, User, UserInput } from 'src/entities/user.entity';
+import { User } from 'src/entities/user.entity';
+import { UserInputDTO } from './models/user-input.dto';
+import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
 
 @Resolver((of) => User)
 export class UsersResolver {
@@ -19,8 +21,9 @@ export class UsersResolver {
   async getUsers(
     @Args('skip', { type: () => Number, nullable: true }) skip?: number,
     @Args('take', { type: () => Number, nullable: true }) take?: number,
+    @Args('dateOfBirth', { type: () => DateOfBirthRangeInput, nullable: true }) dateOfBirth?: DateOfBirthRangeInput,
   ): Promise<PaginatedUsers> {
-    return this.userService.findAll({ skip, take });
+    return this.userService.findAll({ skip, take, dateOfBirth });
   }
 
   @Query((returns) => User)
@@ -35,15 +38,14 @@ export class UsersResolver {
     __typename: string;
     id: string;
   }): Promise<User> {
-    // Fetch user by ID logic
     return await this.userService.findById(parseInt(reference.id));
   }
 
   @Mutation((returns) => Response)
   async updateUser(
     @Args({ name: 'id', type: () => ID }) id: number,
-    @Args({ name: 'data', type: () => UpdateUserPayload })
-    updateUserInput: UpdateUserPayload,
+    @Args({ name: 'data', type: () => UserInputDTO })
+    updateUserInput: UserInputDTO,
   ): Promise<Response> {
     const resp = await this.userService.update(id, updateUserInput);
     let response: Response = {
@@ -67,7 +69,7 @@ export class UsersResolver {
 
   @Mutation((returns) => Response)
   async bulkCreate(
-    @Args({ name: 'data', type: () => [UserInput] }) data: [UserInput],
+    @Args({ name: 'data', type: () => [UserInputDTO] }) data: [UserInputDTO],
   ): Promise<Response> {
     const resp = await this.userService.createBulk(data);
     let response: Response = {

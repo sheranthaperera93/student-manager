@@ -24,7 +24,6 @@ import {
   DialogService,
 } from '@progress/kendo-angular-dialog';
 import { StudentUpdateComponent } from '../student-update/student-update.component';
-import { Response } from '../model/response.model';
 import { NotificationService } from '../services/notification.service';
 import { CourseListComponent } from '../course-list/course-list.component';
 
@@ -159,12 +158,21 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
         this.updateSubscription = this.studentService
           .updateStudent(student.id, updateData)
-          .subscribe((response: Response) => {
-            this.notificationService.showNotification(
-              'success',
-              'Student updated successfully'
-            );
-            this.refreshData();
+          .subscribe({
+            next: () => {
+              this.notificationService.showNotification(
+                'success',
+                'Student updated successfully'
+              );
+              this.refreshData();
+            },
+            error: (error) => {
+              this.notificationService.showNotification(
+                'error',
+                error.message,
+                { hideAfter: 4000 }
+              );
+            },
           });
       }
     });
@@ -192,12 +200,21 @@ export class StudentListComponent implements OnInit, OnDestroy {
       if (!(result instanceof DialogCloseResult) && result.text == 'Yes') {
         this.deleteSubscription = this.studentService
           .deleteStudent(student.id)
-          .subscribe((response: Response) => {
-            this.notificationService.showNotification(
-              'success',
-              'Student deleted successfully'
-            );
-            this.refreshData();
+          .subscribe({
+            next: () => {
+              this.notificationService.showNotification(
+                'success',
+                'Student deleted successfully'
+              );
+              this.refreshData();
+            },
+            error: (error) => {
+              this.notificationService.showNotification(
+                'error',
+                error.message,
+                { hideAfter: 4000 }
+              );
+            },
           });
       }
     });

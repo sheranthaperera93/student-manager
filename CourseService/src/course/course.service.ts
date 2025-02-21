@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Course } from './entities/course.entity';
+import { CustomException } from 'src/core/custom-exception';
 
 @Injectable()
 export class CourseService {
@@ -15,7 +16,16 @@ export class CourseService {
   };
 
   findOne = async (id: number): Promise<Course> => {
-    return await this.courseRepository.findOneByOrFail({ id });
+    try {
+      return await this.courseRepository.findOneByOrFail({ id });
+    } catch (error) {
+      throw new CustomException(
+        'Course not found in the system.',
+        1004,
+        {},
+        HttpStatus.NOT_FOUND,
+      );
+    }
   };
 
   findAll = async (): Promise<Course[]> => {

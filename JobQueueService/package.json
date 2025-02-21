@@ -33,6 +33,7 @@
     "apollo-server-express": "^3.13.0",
     "axios": "^1.7.9",
     "bull": "^4.16.5",
+    "class-validator": "^0.14.1",
     "graphql": "^16.10.0",
     "graphql-request": "^7.1.2",
     "graphql-type-json": "^0.3.2",

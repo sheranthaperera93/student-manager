@@ -1,5 +1,10 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { existsSync } from 'fs';
@@ -10,8 +15,9 @@ import {
   JOB_TYPES,
   JobData,
 } from 'src/core/constants';
+import { CustomException } from 'src/core/custom-exception';
 import { JobQueue } from 'src/entities/job_queue.entity';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 
 @Injectable()
 export class JobQueueService {
@@ -40,42 +46,29 @@ export class JobQueueService {
   };
 
   async updateJobStatus(
-    job: JobQueue,
+    jobId: number,
     status: JOB_QUEUE_STATUS,
+    jobInfoPayload?: JobQueue,
   ): Promise<void> {
-    const jobItem = await this.jobQueueRepository.findOneBy({ id: job.id });
-    if (jobItem) {
-      const updateData = {
-        jobCompleteDate: new Date(),
-        status,
-      };
-      await this.jobQueueRepository.update({ id: job.id }, updateData);
-    } else {
-      Logger.error('Failed to update job status. Invalid JOB ID:', {
-        jobId: job.id,
-        status,
+    const job = await this.jobQueueRepository
+      .findOneByOrFail({ id: jobId })
+      .catch((error) => {
+        Logger.error('Failed to update job status. Invalid JOB ID:', {
+          jobId,
+          status,
+          error,
+        });
+        throw new NotFoundException('No Job Found for ID: ' + job.id);
       });
+    if (jobInfoPayload) {
+      job.jobData = jobInfoPayload.jobData;
     }
-  }
-
-  async updateExportJobStatus(
-    job: JobQueue,
-    status: JOB_QUEUE_STATUS,
-  ): Promise<void> {
-    const jobItem = await this.jobQueueRepository.findOneBy({ id: job.id });
-    if (jobItem) {
-      const updateData: JobQueue = {
-        ...job,
-        jobCompleteDate: new Date(),
-        status,
-      };
-      await this.jobQueueRepository.update({ id: job.id }, updateData);
-    } else {
-      Logger.error('Failed to update export job status. Invalid JOB ID:', {
-        jobId: job.id,
-        status,
-      });
+    if (status === JOB_QUEUE_STATUS.SUCCESS) {
+      job.jobCompleteDate = new Date();
     }
+    job.status = status;
+    Logger.log('Updating job status', { job });
+    await this.jobQueueRepository.update({ id: job.id }, job);
   }
 
   async findAll(): Promise<JobQueue[]> {
@@ -87,31 +80,46 @@ export class JobQueueService {
   }
 
   async retryJobQueueItem(jobId: number): Promise<string> {
-    const jobItem = await this.jobQueueRepository.findOneBy({ id: jobId });
-    if (jobItem && jobItem.status !== JOB_QUEUE_STATUS.FAILED) {
-      Logger.error(
-        'Failed to re-try job. Job either not found or already completed',
-        {
+    try {
+      const jobItem = await this.jobQueueRepository.findOneByOrFail({
+        id: jobId,
+      });
+      if (jobItem.status === JOB_QUEUE_STATUS.SUCCESS) {
+        Logger.error('Job entry already completed', {
           jobId,
+        });
+        throw new Error('Job entry already completed');
+      }
+      Logger.log('Adding retry job to bull queue');
+      await this.jobQueue.add(
+        JOB_TYPES.FILE_UPLOAD_RETRY,
+        {
+          type: JOB_TYPES.FILE_UPLOAD_RETRY,
+          message: JSON.stringify({ jobId }),
+        },
+        {
+          attempts: 3,
+          backoff: 5000,
         },
       );
-      throw new Error(
-        'Failed to re-try job. Job either not found or already completed',
-      );
+      return 'Re-try job created';
+    } catch (error) {
+      if (error.name === EntityNotFoundError.name) {
+        throw new CustomException(
+          'Failed to re-try job. Job not found',
+          1012,
+          {},
+          HttpStatus.NOT_FOUND,
+        );
+      } else {
+        throw new CustomException(
+          'Failed to re-try job. System encountered an unexpected issue',
+          1011,
+          error,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
     }
-    Logger.log('Adding retry job to bull queue');
-    await this.jobQueue.add(
-      JOB_TYPES.FILE_UPLOAD_RETRY,
-      {
-        type: JOB_TYPES.FILE_UPLOAD_RETRY,
-        message: JSON.stringify({ jobId }),
-      },
-      {
-        attempts: 3,
-        backoff: 5000,
-      },
-    );
-    return 'Re-try job created';
   }
 
   createExportJob = async (age: string, type: JOB_TYPE): Promise<JobQueue> => {
@@ -130,23 +138,28 @@ export class JobQueueService {
   };
 
   getFile(fileName: string): string {
-    console.log('fileName', fileName);
     const filePath = join(__dirname, 'uploads', fileName);
     if (!existsSync(filePath)) {
       throw new Error('File not found');
     }
-    try {
-      return filePath;
-    } catch (error) {
-      throw new Error('Failed to read file');
-    }
+    return filePath;
   }
 
   fetchExport = async (id: number): Promise<string> => {
-    const jobItem = await this.jobQueueRepository.findOneBy({ id: id });
-    if (!jobItem) {
-      throw new Error('Failed to fetch job. Job not found');
-    }
+    const jobItem = await this.jobQueueRepository
+      .findOneByOrFail({ id })
+      .catch((error) => {
+        Logger.error(
+          'Failed to fetch export job. Job not found. Job ID: ' + id,
+          error,
+        );
+        throw new CustomException(
+          'No Job Found for ID: ' + id,
+          1009,
+          {},
+          HttpStatus.NOT_FOUND,
+        );
+      });
     return JSON.parse(jobItem.jobData).fileName;
   };
 }

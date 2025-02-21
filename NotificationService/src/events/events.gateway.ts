@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -19,15 +20,15 @@ export class EventsGateway
   @WebSocketServer() server: Server;
 
   afterInit(server: Server) {
-    console.log('WebSocket server initialized');
+    Logger.log('WebSocket server initialized');
   }
 
   handleConnection(client: Socket, ...args: any[]) {
-    console.log(`Client connected: ${client.id}`);
+    Logger.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    Logger.log(`Client disconnected: ${client.id}`);
   }
 
   // The method sends a broadcast message to all clients

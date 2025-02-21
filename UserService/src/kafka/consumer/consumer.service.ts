@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   Consumer,
@@ -14,11 +14,8 @@ export class ConsumerService implements OnApplicationShutdown {
 
   constructor(private readonly configService: ConfigService) {
     this.kafka = new Kafka({
-      brokers: [
-        this.configService.get('KAFKA_BROKER')!,
-      ],
-      clientId:
-        this.configService.get('KAFKA_CLIENT_ID'),
+      brokers: [this.configService.get('KAFKA_BROKER')!],
+      clientId: this.configService.get('KAFKA_CLIENT_ID'),
     });
   }
 
@@ -34,8 +31,16 @@ export class ConsumerService implements OnApplicationShutdown {
     config: ConsumerRunConfig,
   ) {
     const consumer: Consumer = this.kafka.consumer({ groupId });
-    await consumer.connect().catch((e) => console.error(e));
-    await consumer.subscribe(topic);
+    await consumer
+      .connect()
+      .catch((e) =>
+        Logger.error('Filed to connect consumer to kafka broker', e),
+      );
+    await consumer
+      .subscribe(topic)
+      .catch((e) =>
+        Logger.error('Filed to subscribe to topic', { topic, error: e }),
+      );
     await consumer.run(config);
     this.consumers.push(consumer);
   }

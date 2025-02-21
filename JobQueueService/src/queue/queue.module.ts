@@ -6,7 +6,6 @@ import { KafkaModule } from 'src/kafka/kafka.module';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
 import { FileExportService } from 'src/file-processing/file-export/file-export.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -22,7 +21,7 @@ import { ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService]
     }),
-    TypeOrmModule.forFeature([JobQueue, User]),
+    TypeOrmModule.forFeature([JobQueue]),
     KafkaModule,
   ],
   providers: [QueueProcessor, FileUploadService, FileExportService, JobQueueService],
