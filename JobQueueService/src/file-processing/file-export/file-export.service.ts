@@ -14,12 +14,14 @@ import { JOB_QUEUE_STATUS, JOB_TYPE } from 'src/core/constants';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 import { CustomException } from 'src/core/custom-exception';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FileExportService {
   constructor(
     private readonly kafka: ProducerService,
     private readonly jobQueueService: JobQueueService,
+    private readonly configService: ConfigService
   ) {}
 
   async handleUserExport(message: string) {
@@ -82,8 +84,11 @@ export class FileExportService {
     dateOfBirth: { from: string; to: string };
   }): Promise<User[]> => {
     try {
+      Logger.log('Fetching filtered user records');
+      Logger.log('FEDERATION_GATEWAY_URL', this.configService.get('FEDERATION_GATEWAY_URL'));
+      Logger.log('params', params);
       const response = await axios.post(
-        'http://localhost:3001/graphql',
+        this.configService.get('FEDERATION_GATEWAY_URL')!,
         {
           query: `
             query getUsers($dateOfBirth: DateOfBirthRangeInput!) {

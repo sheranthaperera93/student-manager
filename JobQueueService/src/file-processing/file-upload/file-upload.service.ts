@@ -4,6 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as fs from 'fs';
@@ -25,6 +26,7 @@ export class FileUploadService {
     private readonly jobQueueRepository: Repository<JobQueue>,
     private readonly kafka: ProducerService,
     private readonly jobQueueService: JobQueueService,
+    private readonly configService: ConfigService,
   ) {}
 
   handleFileUpload = async (message: string) => {
@@ -35,10 +37,8 @@ export class FileUploadService {
         fileName,
         JOB_TYPE.UPLOADS,
       );
-      const response = await axios.get(
-        `http://localhost:3002/api/users/upload/${fileName}`,
-        { responseType: 'arraybuffer' },
-      );
+      const url = `${this.configService.get('USER_SERVICE_URL')!}/api/users/upload/${fileName}`;
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
       const uploadDir = path.join(__dirname, 'uploads');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -70,10 +70,8 @@ export class FileUploadService {
         id: jobId,
       });
       const { fileName } = JSON.parse(jobItem.jobData);
-      const response = await axios.get(
-        `http://localhost:3002/api/users/upload/${fileName}`,
-        { responseType: 'arraybuffer' },
-      );
+      const url = `${this.configService.get('USER_SERVICE_URL')!}/api/users/upload/${fileName}`;
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
       const uploadDir = path.join(__dirname, 'uploads');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -116,7 +114,7 @@ export class FileUploadService {
   insertBulkRecords = async (records: UserInputDTO[]) => {
     try {
       const response = await axios.post(
-        'http://localhost:3001/graphql',
+        this.configService.get('FEDERATION_GATEWAY_URL')!,
         {
           query: `
             mutation bulkCreate($data: [UserInputDTO!]!) {

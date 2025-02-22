@@ -78,6 +78,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=FortudeSmP@2023
+      - FEDERATION_GATEWAY_URL=http://federation-gateway:3001/graphql
+      - USER_SERVICE_URL=http://user-service:3002
     depends_on:
       - db
       - redis

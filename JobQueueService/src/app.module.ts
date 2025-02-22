@@ -8,7 +8,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Makes the ConfigModule available globally
+      isGlobal: true, // Makes the config globally available
+      envFilePath: '.env', // Path to your environment file
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService) => ({

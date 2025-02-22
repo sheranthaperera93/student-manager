@@ -23,12 +23,12 @@ export class QueueProcessor {
   @Process(JOB_TYPES.FILE_UPLOAD_RETRY)
   async handleReTryJob(job: Job<JobItem>) {
     console.log('Processing Bull JS retry job:', job.data);
-      this.fileUploadService.handleRetryJobQueueItem(job.data.message);
+    this.fileUploadService.handleRetryJobQueueItem(job.data.message);
   }
 
   @Process(JOB_TYPES.FILE_EXPORT)
   async handleExportJob(job: Job<JobItem>) {
     console.log('Processing Bull JS export job:', job.data);
-      this.fileExportService.handleUserExport(job.data.message);
+    this.fileExportService.handleUserExport(job.data.message);
   }
 }

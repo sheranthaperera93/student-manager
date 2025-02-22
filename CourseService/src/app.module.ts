@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
 import { CourseModule } from './course/course.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes the config globally available
+      envFilePath: '.env', // Path to your environment file
+    }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService) => ({
         type: 'postgres',

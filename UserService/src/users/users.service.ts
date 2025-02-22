@@ -47,6 +47,8 @@ export class UsersService {
       query.take(take);
     }
 
+    query.orderBy('user.id', 'ASC');
+
     const [items, total] = await query.getManyAndCount();
     return { items, total };
   };

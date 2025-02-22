@@ -13,7 +13,6 @@ import { ConfigService } from '@nestjs/config';
   imports: [
     BullModule.forRootAsync({
       useFactory: (configService) => ({
-        name: 'bull-queue',
         redis: {
           host: configService.get('REDIS_HOST'), // Redis server host
           port: configService.get('REDIS_PORT'), // Redis server port
@@ -21,10 +20,18 @@ import { ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService]
     }),
+    BullModule.registerQueue({
+      name: 'bull-queue',
+    }),
     TypeOrmModule.forFeature([JobQueue]),
     KafkaModule,
   ],
-  providers: [QueueProcessor, FileUploadService, FileExportService, JobQueueService],
+  providers: [
+    QueueProcessor,
+    FileUploadService,
+    FileExportService,
+    JobQueueService,
+  ],
   exports: [QueueProcessor, BullModule],
 })
 export class QueueModule {}
