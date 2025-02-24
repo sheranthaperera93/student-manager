@@ -78,7 +78,7 @@ export class StudentService {
     return this.apollo
       .mutate({
         mutation: gql`
-          mutation updateUser($id: ID!, $data: UpdateUserPayload!) {
+          mutation updateUser($id: ID!, $data: UserInputDTO!) {
             updateUser(id: $id, data: $data) {
               message
               data
