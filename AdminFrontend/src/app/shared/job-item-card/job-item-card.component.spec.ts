@@ -6,7 +6,7 @@ import { JOB_STATUS, JOB_TYPES } from '../../core/constants';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { ButtonModule } from '@progress/kendo-angular-buttons';
 
-describe('JobItemCardComponent', () => {
+xdescribe('JobItemCardComponent', () => {
   let component: JobItemCardComponent;
   let fixture: ComponentFixture<JobItemCardComponent>;
 

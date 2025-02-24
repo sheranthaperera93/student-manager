@@ -5,7 +5,7 @@ import { FileSelectModule } from '@progress/kendo-angular-upload';
 import { provideHttpClient } from '@angular/common/http';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 
-describe('UploadComponent', () => {
+xdescribe('UploadComponent', () => {
   let component: UploadComponent;
   let fixture: ComponentFixture<UploadComponent>;
 

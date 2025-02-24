@@ -66,6 +66,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    console.log('StudentListComponent initialized: ', this.studentService.refreshStudentList);
     this.reloadListSubscription =
       this.studentService.refreshStudentList.subscribe(() => {
         this.refreshData();
@@ -227,7 +228,6 @@ export class StudentListComponent implements OnInit, OnDestroy {
    * @param parameters - The parameters used for exporting data.
    */
   onExportHandler = (parameters: ExportParameters): void => {
-    console.log('Exporting data with params: ', parameters);
     this.exportSubscription = this.studentService
       .exportData(parameters)
       .subscribe(() => {
