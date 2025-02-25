@@ -11,6 +11,14 @@ import { NotificationService } from '../services/notification.service';
 import { StudentService } from '../services/student.service';
 import { UtilService } from '../services/util.service';
 
+const mockResponse = {
+  data: [
+    { id: 1, name: 'John Doe', email: 'john@example.com', date_of_birth: '1990-01-01' },
+    { id: 2, name: 'Jane Doe', email: 'jane@example.com', date_of_birth: '1992-02-02' },
+  ],
+  total: 2,
+};
+
 describe('StudentListComponent', () => {
   let component: StudentListComponent;
   let fixture: ComponentFixture<StudentListComponent>;
@@ -20,6 +28,7 @@ describe('StudentListComponent', () => {
   let notificationService: jasmine.SpyObj<NotificationService>;
 
   beforeEach(async () => {
+
     studentService = jasmine.createSpyObj<StudentService>(
       'StudentService',
       ['getStudents', 'updateStudent', 'deleteStudent', 'exportData'],
@@ -33,6 +42,11 @@ describe('StudentListComponent', () => {
     notificationService = jasmine.createSpyObj('NotificationService', [
       'showNotification',
     ]);
+
+    studentService.getStudents.and.returnValue(of({
+      data: mockResponse.data,
+      total: mockResponse.total,
+    }));
 
     await TestBed.configureTestingModule({
       imports: [ApolloTestingModule, GridModule, SVGIconModule, ButtonModule],

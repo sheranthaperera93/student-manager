@@ -22,6 +22,7 @@ export class CourseListComponent {
       },
       error: (error: any) => {
         console.error('Error fetching course list:', error);
+        this.loading = false;
       },
       complete: () => {
         this.loading = false;

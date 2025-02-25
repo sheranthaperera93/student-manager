@@ -66,7 +66,6 @@ export class StudentListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('StudentListComponent initialized: ', this.studentService.refreshStudentList);
     this.reloadListSubscription =
       this.studentService.refreshStudentList.subscribe(() => {
         this.refreshData();

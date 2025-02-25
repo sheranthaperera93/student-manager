@@ -6,7 +6,7 @@ import { io, Socket } from 'socket.io-client';
   providedIn: 'root',
 })
 export class SocketService {
-  private socket: Socket;
+  private readonly socket: Socket;
 
   constructor() {
     this.socket = io('http://localhost:3003');

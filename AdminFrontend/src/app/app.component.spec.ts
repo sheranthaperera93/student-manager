@@ -6,8 +6,10 @@ import { AppBarModule } from '@progress/kendo-angular-navigation';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { BadgeModule } from '@progress/kendo-angular-indicators';
 import { ApolloTestingModule } from 'apollo-angular/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 
-xdescribe('AppComponent', () => {
+describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
@@ -17,6 +19,7 @@ xdescribe('AppComponent', () => {
         SVGIconModule,
         BadgeModule,
       ],
+      providers: [provideHttpClientTesting(), provideHttpClient()],
       declarations: [AppComponent, HeaderComponent],
     }).compileComponents();
   });

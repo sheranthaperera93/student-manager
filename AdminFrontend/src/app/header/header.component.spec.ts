@@ -11,8 +11,9 @@ import { AvatarModule, LayoutModule } from '@progress/kendo-angular-layout';
 import { NavigationModule } from '@progress/kendo-angular-navigation';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { IconsModule } from '@progress/kendo-angular-icons';
+import { JobQueueItem } from '../core/constants';
 
-xdescribe('HeaderComponent', () => {
+describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
   let notificationService: NotificationService;
@@ -21,8 +22,14 @@ xdescribe('HeaderComponent', () => {
   beforeEach(async () => {
     notificationService = jasmine.createSpyObj('NotificationService', [
       'getFailedJobCount',
+      'getJobQueueItems',
+      'showNotification',
     ]);
     studentService = jasmine.createSpyObj('StudentService', ['uploadFile']);
+
+    (notificationService.getJobQueueItems as jasmine.Spy).and.returnValue(
+      of([] as JobQueueItem[])
+    );
 
     await TestBed.configureTestingModule({
       imports: [
@@ -33,7 +40,7 @@ xdescribe('HeaderComponent', () => {
         NavigationModule,
         IndicatorsModule,
         IconsModule,
-        UploadsModule
+        UploadsModule,
       ],
       declarations: [HeaderComponent],
       providers: [
@@ -100,5 +107,15 @@ xdescribe('HeaderComponent', () => {
       component.jobQueue
     );
     expect(failedJobCount).toBe(1);
+  });
+
+  it('should handle fetch job queues with undefined data', () => {
+    (notificationService.getJobQueueItems as jasmine.Spy).and.returnValue(
+      of([])
+    );
+
+    component.fetchJobQueues();
+
+    expect(component.jobQueue).toEqual([]);
   });
 });

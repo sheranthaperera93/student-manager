@@ -234,6 +234,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             'error',
             'Failed to create student upload job. Please try again later.'
           );
+          this.isUploadDialogVisible = false;
         },
         complete: () => {
           this.isUploadDialogVisible = false;

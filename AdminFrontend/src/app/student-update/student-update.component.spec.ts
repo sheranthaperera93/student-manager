@@ -11,7 +11,7 @@ import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-xdescribe('StudentUpdateComponent', () => {
+describe('StudentUpdateComponent', () => {
   let component: StudentUpdateComponent;
   let fixture: ComponentFixture<StudentUpdateComponent>;
 

@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { Notification } from '../../model/notification.model';
 import { NotificationService } from '../../services/notification.service';
 import { JOB_STATUS, JOB_TYPES } from '../../core/constants';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-notifications',
@@ -32,7 +33,7 @@ export class NotificationsComponent {
       });
     }
     if (item.status === JOB_STATUS.SUCCESS && item.type === JOB_TYPES.EXPORT) {
-      const baseUrl = 'http://localhost:3006/job-queue/download/';
+      const baseUrl = environment.userService + '/download/';
       this.notificationService
         .downloadExportJob(item.id)
         .subscribe((res: { fileName: string }) => {
