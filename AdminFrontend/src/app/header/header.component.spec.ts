@@ -4,14 +4,14 @@ import { HeaderComponent } from './header.component';
 import { of, throwError } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { StudentService } from '../services/student.service';
-import { FileInfo } from '@progress/kendo-angular-upload';
+import { FileInfo, UploadsModule } from '@progress/kendo-angular-upload';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { AvatarModule, LayoutModule } from '@progress/kendo-angular-layout';
 import { NavigationModule } from '@progress/kendo-angular-navigation';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { IconsModule } from '@progress/kendo-angular-icons';
-import { UploadsModule } from '@progress/kendo-angular-upload';
+import { JobQueueItem } from '../core/constants';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
@@ -22,8 +22,14 @@ describe('HeaderComponent', () => {
   beforeEach(async () => {
     notificationService = jasmine.createSpyObj('NotificationService', [
       'getFailedJobCount',
+      'getJobQueueItems',
+      'showNotification',
     ]);
     studentService = jasmine.createSpyObj('StudentService', ['uploadFile']);
+
+    (notificationService.getJobQueueItems as jasmine.Spy).and.returnValue(
+      of([] as JobQueueItem[])
+    );
 
     await TestBed.configureTestingModule({
       imports: [
@@ -34,7 +40,7 @@ describe('HeaderComponent', () => {
         NavigationModule,
         IndicatorsModule,
         IconsModule,
-        UploadsModule
+        UploadsModule,
       ],
       declarations: [HeaderComponent],
       providers: [
@@ -101,5 +107,15 @@ describe('HeaderComponent', () => {
       component.jobQueue
     );
     expect(failedJobCount).toBe(1);
+  });
+
+  it('should handle fetch job queues with undefined data', () => {
+    (notificationService.getJobQueueItems as jasmine.Spy).and.returnValue(
+      of([])
+    );
+
+    component.fetchJobQueues();
+
+    expect(component.jobQueue).toEqual([]);
   });
 });

@@ -100,7 +100,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         console.warn('Unknown job status:', parsedMsg.status);
     }
     this.fetchJobQueues();
-    this.studentService.refreshStudentList.next('reload-list');
+    this.studentService.refreshStudentList.next();
   }
 
   handleOnExportJobChange(parsedMsg: {
@@ -234,6 +234,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             'error',
             'Failed to create student upload job. Please try again later.'
           );
+          this.isUploadDialogVisible = false;
         },
         complete: () => {
           this.isUploadDialogVisible = false;
