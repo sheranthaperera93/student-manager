@@ -11,6 +11,7 @@ import { environment } from '../../environments/environment';
 import { ExportParameters } from '../core/constants';
 import { Course } from '../model/course.model';
 import { Response } from '../model/response.model';
+import { FileInfo } from '@progress/kendo-angular-upload';
 
 @Injectable({
   providedIn: 'root',
@@ -121,9 +122,9 @@ export class StudentService {
       );
   };
 
-  uploadFile = (file: File): Observable<any> => {
+  uploadFile = (files: File[]): Observable<any> => {
     const formData = new FormData();
-    formData.append('file', file, file.name);
+    files.forEach((file) => {formData.append('files', file)}); // Ensure rawFile is used
     return this.http.post(environment.userService + '/users/upload', formData);
   };
 

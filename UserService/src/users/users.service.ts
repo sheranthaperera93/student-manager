@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { createWriteStream, mkdirSync, existsSync } from 'fs';
+import { createWriteStream, mkdirSync, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import * as archiver from 'archiver';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
@@ -130,14 +131,19 @@ export class UsersService {
   };
 
   handleUploadProcess = async (
-    file: Express.Multer.File,
+    files: Array<Express.Multer.File>,
   ): Promise<{ fileName: string; filePath: string }> => {
     try {
-      const { fileName, filePath } = await this.uploadFile(file);
+      const { fileName, filePath } = await this.uploadFiles(files);
       const payload = {
         filePath: filePath,
         fileName: fileName,
         action: 'upload',
+        files: files.map(file => ({
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+        })),
       };
       await this.kafka.produce({
         topic: 'user-upload',
@@ -154,25 +160,39 @@ export class UsersService {
     }
   };
 
-  uploadFile = async (
-    file: Express.Multer.File,
+  uploadFiles = async (
+    files: Array<Express.Multer.File>,
   ): Promise<{ fileName: string; filePath: string }> => {
-    const fileName = `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`;
+    const zipFileName = `${Date.now()}-uploads.zip`;
+    const uploadsDir = join(__dirname, '../', 'uploads');
+    const zipFilePath = join(uploadsDir, zipFileName);
+
     // Create directory if not exists
-    if (!existsSync(join(__dirname, '../', 'uploads'))) {
-      mkdirSync(join(__dirname, '../', 'uploads'));
+    if (!existsSync(uploadsDir)) {
+      mkdirSync(uploadsDir);
     }
-    const filePath = join(__dirname, '../', 'uploads', fileName);
-    Logger.debug('Upload file details', { fileName, filePath });
+
     return await new Promise((resolve, reject) => {
-      const writeStream = createWriteStream(filePath);
-      writeStream.write(file.buffer);
-      writeStream.end();
-      writeStream.on('finish', () => resolve({ fileName, filePath }));
-      writeStream.on('error', (error) => {
-        Logger.error('Failed to write upload content to file', error);
-        reject(new Error('Failed to write user upload content to file'));
+      const output = createWriteStream(zipFilePath);
+      const archive = archiver('zip', {
+        zlib: { level: 9 },
       });
+
+      output.on('close', () => resolve({ fileName: zipFileName, filePath: zipFilePath }));
+      archive.on('error', (error) => {
+        Logger.error('Failed to zip upload content', error);
+        reject(new Error('Failed to zip user upload content'));
+      });
+
+      archive.pipe(output);
+
+      files.forEach((file) => {
+        const filePath = join(uploadsDir, file.originalname.replace(/\s+/g, '-'));
+        writeFileSync(filePath, file.buffer);
+        archive.file(filePath, { name: file.originalname });
+      });
+
+      archive.finalize();
     });
   };
 

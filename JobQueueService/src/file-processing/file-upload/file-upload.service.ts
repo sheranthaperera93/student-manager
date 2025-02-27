@@ -12,12 +12,12 @@ import * as path from 'path';
 import { JOB_QUEUE_STATUS, JOB_TYPE } from 'src/core/constants';
 import { CustomException } from 'src/core/exception-handlers';
 import { JobQueue } from 'src/entities/job_queue.entity';
-import { User } from 'src/entities/user.entity';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 import { UserInputDTO } from 'src/models/user-input.model';
 import { Repository } from 'typeorm';
 import * as xlsx from 'xlsx';
+import * as unzipper from 'unzipper';
 
 @Injectable()
 export class FileUploadService {
@@ -46,7 +46,7 @@ export class FileUploadService {
       const tmpFilePath = path.join(__dirname, 'uploads', fileName);
       fs.writeFileSync(tmpFilePath, response.data);
       Logger.debug(`File temporary saved to ${tmpFilePath}`);
-      const records: UserInputDTO[] = this.extractExcelContent(tmpFilePath);
+      const records: UserInputDTO[] = await this.extractExcelContent(tmpFilePath);
       Logger.log('File deleted from temporary location');
       fs.unlinkSync(tmpFilePath);
       Logger.debug('Insert records to database');
@@ -74,7 +74,7 @@ export class FileUploadService {
       const tmpFilePath = path.join(__dirname, 'uploads', fileName);
       fs.writeFileSync(tmpFilePath, response.data);
       Logger.debug(`File temporary saved to ${tmpFilePath}`);
-      const records: UserInputDTO[] = this.extractExcelContent(tmpFilePath);
+      const records: UserInputDTO[] = await this.extractExcelContent(tmpFilePath);
       Logger.debug('File deleted from temporary location');
       fs.unlinkSync(tmpFilePath);
       Logger.debug('Insert records to database');
@@ -134,42 +134,50 @@ export class FileUploadService {
   };
 
   /**
-   * Extracts content from an Excel file and converts it into an array of User objects.
+   * Extracts content from an Excel file within a zip archive.
    *
-   * @param {string} filePath - The path to the Excel file to be read.
-   * @returns {Array<User>} An array of User objects extracted from the Excel file.
+   * @param {string} filePath - The path to the zip file containing the Excel file.
+   * @returns {Promise<Array<UserInputDTO>>} - A promise that resolves to an array of UserInputDTO objects.
    *
-   * The Excel file is expected to have the following columns in the first sheet:
-   * - Column 1: Name (string)
-   * - Column 2: Email (string)
-   * - Column 3: Date of Birth (Excel date format)
+   * @throws {Error} - Throws an error if the extraction process fails.
    *
-   * The method reads the first sheet of the Excel file, converts the data to JSON,
-   * and maps each row to a User object. The date of birth is converted using the
-   * `convertExcelDate` method.
-   *
-   * @example
-   * const users = extractExcelContent('/path/to/excel/file.xlsx');
-   * console.log(users);
+   * The function reads the zip file, extracts the Excel file, and converts its content to JSON.
+   * It then maps the JSON data to an array of UserInputDTO objects.
+   * Each UserInputDTO object contains the name, email, and date of birth extracted from the Excel file.
    */
-  extractExcelContent(filePath: string): Array<UserInputDTO> {
+  extractExcelContent = async (filePath: string): Promise<Array<UserInputDTO>> => {
+    const records: UserInputDTO[] = [];
     try {
-      const workbook = xlsx.readFile(filePath);
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-      const records: UserInputDTO[] = jsonData
-        .filter((array: any) => array.length > 0)
-        .slice(0)
-        .map((row: any) => ({
-          name: row[0],
-          email: row[1],
-          date_of_birth: this.convertExcelDate(row[2]),
-        }));
-      Logger.log('Records created', records);
+      const zip = fs.createReadStream(filePath).pipe(unzipper.Parse({ forceStream: true }));
+      for await (const entry of zip) {
+        const fileName = entry.path;
+        const type = entry.type; // 'Directory' or 'File'
+        if (type === 'File' && fileName.endsWith('.xlsx')) {
+          const chunks: Buffer[] = [];
+          for await (const chunk of entry) {
+            chunks.push(chunk);
+          }
+          const buffer = Buffer.concat(chunks);
+          const workbook = xlsx.read(buffer, { type: 'buffer' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+          const fileRecords: UserInputDTO[] = jsonData
+            .filter((array: any) => array.length > 0)
+            .slice(1)
+            .map((row: any) => ({
+              name: row[0],
+              email: row[1],
+              date_of_birth: this.convertExcelDate(row[2]),
+            }));
+          records.push(...fileRecords);
+        } else {
+          entry.autodrain();
+        }
+      }
       return records;
     } catch (error) {
-      Logger.error('Failed to extract excel file content', error.message);
-      throw new Error('Failed to extract excel file content');
+      Logger.error('Failed to extract excel file content from zip', error.message);
+      throw new Error('Failed to extract excel file content from zip');
     }
   }
 

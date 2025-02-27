@@ -1,18 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FileInfo } from '@progress/kendo-angular-upload';
 import { bellIcon, SVGIcon, uploadIcon } from '@progress/kendo-svg-icons';
-import {
-  JOB_QUEUE_STATUS,
-  JOB_QUEUE_TYPES,
-  JOB_STATUS,
-  JOB_TYPES,
-  JobQueueItem,
-} from '../core/constants';
+import { JOB_QUEUE_STATUS, JOB_TYPES, JobQueueItem } from '../core/constants';
 import { Notification } from '../model/notification.model';
 import { NotificationService } from '../services/notification.service';
 import { StudentService } from '../services/student.service';
 import { SocketService } from '../services/socket.service';
 import { Subscription } from 'rxjs';
+import { UtilService } from '../services/util.service';
 
 @Component({
   selector: 'app-header',
@@ -29,46 +24,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private readonly messageSubscription: Subscription;
 
-  // public jobQueue: Notification[] = [{
-  //   id: 1,
-  //   name: 'Success',
-  //   date: new Date(),
-  //   status: JOB_STATUS.SUCCESS,
-  //   type: JOB_TYPES.UPLOAD,
-  // },
-  // {
-  //   id: 2,
-  //   name: 'Failed',
-  //   date: new Date(),
-  //   status: JOB_STATUS.FAILED,
-  //   type: JOB_TYPES.UPLOAD,
-  // },
-  // {
-  //   id: 3,
-  //   name: 'Pending',
-  //   date: new Date(),
-  //   status: JOB_STATUS.PENDING,
-  //   type: JOB_TYPES.UPLOAD,
-  // },
-  // {
-  //   id: 4,
-  //   name: 'Download Ready',
-  //   date: new Date(),
-  //   status: JOB_STATUS.SUCCESS,
-  //   type: JOB_TYPES.EXPORT,
-  // }],
-
   public jobQueue: Notification[] = [];
 
   constructor(
     private readonly notificationService: NotificationService,
     private readonly studentService: StudentService,
-    private readonly socketService: SocketService
+    private readonly socketService: SocketService,
+    private readonly utilService: UtilService
   ) {
     this.messageSubscription = this.socketService
       .on('message')
       .subscribe((data) => {
-        console.log('Message from the heavens ', data);
         const parsedMsg = JSON.parse(data);
         if (parsedMsg.type === JOB_TYPES.UPLOAD) {
           this.handleOnUploadJobChange(parsedMsg);
@@ -141,71 +107,18 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.jobQueue = data.map(
           (element: JobQueueItem): Notification => ({
             id: element.id,
-            status: this.getStatus(element.status),
-            type: this.getType(element.type),
+            status: this.utilService.getStatus(element.status),
+            type: this.utilService.getType(element.type),
             date:
               element.status === JOB_QUEUE_STATUS.SUCCESS
                 ? new Date(element.jobCompleteDate)
                 : new Date(element.createdDate),
-            name: this.getName(element.type, element.status),
+            name: this.utilService.getName(element.type, element.status),
           })
         );
       },
     });
   }
-
-  getStatus = (status: JOB_QUEUE_STATUS): JOB_STATUS => {
-    switch (status) {
-      case JOB_QUEUE_STATUS.SUCCESS:
-        return JOB_STATUS.SUCCESS;
-      case JOB_QUEUE_STATUS.PENDING:
-        return JOB_STATUS.PENDING;
-      default:
-        return JOB_STATUS.FAILED;
-    }
-  };
-
-  getType = (type: JOB_QUEUE_TYPES): JOB_TYPES => {
-    return type === JOB_QUEUE_TYPES.FILE_UPLOAD
-      ? JOB_TYPES.UPLOAD
-      : JOB_TYPES.EXPORT;
-  };
-
-  getName = (type: JOB_QUEUE_TYPES, status: JOB_QUEUE_STATUS) => {
-    if (
-      type === JOB_QUEUE_TYPES.FILE_UPLOAD &&
-      status === JOB_QUEUE_STATUS.SUCCESS
-    ) {
-      return 'User upload success';
-    } else if (
-      type === JOB_QUEUE_TYPES.FILE_UPLOAD &&
-      status === JOB_QUEUE_STATUS.FAILED
-    ) {
-      return 'User upload failed. Try again later';
-    } else if (
-      type === JOB_QUEUE_TYPES.FILE_UPLOAD &&
-      status === JOB_QUEUE_STATUS.PENDING
-    ) {
-      return 'User upload pending';
-    } else if (
-      type === JOB_QUEUE_TYPES.FILE_EXPORT &&
-      status === JOB_QUEUE_STATUS.SUCCESS
-    ) {
-      return 'User export success';
-    } else if (
-      type === JOB_QUEUE_TYPES.FILE_EXPORT &&
-      status === JOB_QUEUE_STATUS.FAILED
-    ) {
-      return 'User export failed. Try again later';
-    } else if (
-      type === JOB_QUEUE_TYPES.FILE_EXPORT &&
-      status === JOB_QUEUE_STATUS.PENDING
-    ) {
-      return 'User export pending';
-    } else {
-      return 'Unknown Notification';
-    }
-  };
 
   /**
    * Opens the upload dialog by setting the visibility flag to true.
@@ -228,9 +141,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
    *
    * @param file - The file information to be uploaded. It can be of type FileInfo or undefined.
    */
-  uploadFile(file: FileInfo | undefined): void {
-    if (file) {
-      this.studentService.uploadFile(file.rawFile as File).subscribe({
+  uploadFile(files: FileInfo[]): void {
+    if (files?.length > 0) {
+      this.studentService.uploadFile(files.map((file) => file.rawFile!)).subscribe({
         next: (result) => {
           console.log('File upload successful', result);
           this.notificationService.showNotification(

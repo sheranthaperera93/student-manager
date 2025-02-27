@@ -6,10 +6,11 @@ import {
   Get,
   Param,
   Res,
+  UploadedFiles,
 } from '@nestjs/common';
 import { Response } from './models/response.model';
 import { UsersService } from './users.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { Response as ExpressResponse } from 'express';
 
 @Controller('users')
@@ -17,11 +18,11 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files'))
   async uploadUsers(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ): Promise<Response> {
-    const uploadDetails = await this.usersService.handleUploadProcess(file);
+    const uploadDetails = await this.usersService.handleUploadProcess(files);
     return { message: 'File upload job initiated successfully', data: uploadDetails };
   }
 
