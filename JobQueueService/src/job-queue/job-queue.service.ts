@@ -15,7 +15,7 @@ import {
   JOB_TYPES,
   JobData,
 } from 'src/core/constants';
-import { CustomException } from 'src/core/custom-exception';
+import { CustomException } from 'src/core/exception-handlers';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
 

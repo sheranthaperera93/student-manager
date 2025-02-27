@@ -10,7 +10,7 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import { JOB_QUEUE_STATUS, JOB_TYPE } from 'src/core/constants';
-import { CustomException } from 'src/core/custom-exception';
+import { CustomException } from 'src/core/exception-handlers';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { User } from 'src/entities/user.entity';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
@@ -30,14 +30,14 @@ export class FileUploadService {
   ) {}
 
   handleFileUpload = async (message: string) => {
+    const { fileName, filePath } = JSON.parse(message);
+    const jobItem = await this.jobQueueService.createUploadJob(
+      filePath,
+      fileName,
+      JOB_TYPE.UPLOADS,
+    );
+    const url = `${this.configService.get('USER_SERVICE_URL')!}/api/users/upload/${fileName}`;
     try {
-      const { fileName, filePath } = JSON.parse(message);
-      const jobItem = await this.jobQueueService.createUploadJob(
-        filePath,
-        fileName,
-        JOB_TYPE.UPLOADS,
-      );
-      const url = `${this.configService.get('USER_SERVICE_URL')!}/api/users/upload/${fileName}`;
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       const uploadDir = path.join(__dirname, 'uploads');
       if (!fs.existsSync(uploadDir)) {
@@ -54,12 +54,7 @@ export class FileUploadService {
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
       Logger.error('Error processing user bulk upload: ', error);
-      throw new CustomException(
-        'Error while processing user bulk upload',
-        1006,
-        error,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.FAILED);
     }
   };
 
@@ -90,24 +85,16 @@ export class FileUploadService {
         id: jobId,
       });
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.FAILED);
+      if (error.name === NotFoundException.name) {
+        Logger.error('Failed to find job item', {
+          jobId,
+          error,
+        });
+      }
       Logger.error('Error processing user retry bulk upload: ', {
         jobId,
         error,
       });
-      if (error.name === NotFoundException.name) {
-        throw new CustomException(
-          error.message,
-          1007,
-          error,
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      throw new CustomException(
-        'Error while processing user retry bulk upload',
-        1010,
-        error,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
     }
   };
 
@@ -131,10 +118,18 @@ export class FileUploadService {
           },
         },
       );
+      if (response.data.errors) {
+        throw response.data.errors[0].message;
+      }
       return response.data.data.bulkCreate.message;
     } catch (error) {
       Logger.error('Error inserting bulk records: ', error);
-      throw new Error('Failed to insert bulk records');
+      throw new CustomException(
+        'Error while inserting bulk records',
+        1006,
+        error,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   };
 

@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
-import { CustomException } from 'src/core/custom-exception';
+import { CustomException, DuplicateEntryException } from 'src/core/exception-handlers';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 import { UserInputDTO } from './models/user-input.dto';
 import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
@@ -112,6 +112,14 @@ export class UsersService {
       await this.userRepository.save(userRecords);
       return 'Users created successfully';
     } catch (error) {
+      Logger.error(error.message, "Failed to create bulk users");
+      if (error.message.includes('duplicate key value violates unique constraint')) {
+        throw new DuplicateEntryException(
+          'Duplicate entry error',
+          1009,
+          error.stack,
+        );
+      }
       throw new CustomException(
         'Bulk user creation failed',
         1008,

@@ -33,7 +33,7 @@ export class NotificationsComponent {
       });
     }
     if (item.status === JOB_STATUS.SUCCESS && item.type === JOB_TYPES.EXPORT) {
-      const baseUrl = environment.userService + '/download/';
+      const baseUrl = environment.jobQueueService + '/download/';
       this.notificationService
         .downloadExportJob(item.id)
         .subscribe((res: { fileName: string }) => {
