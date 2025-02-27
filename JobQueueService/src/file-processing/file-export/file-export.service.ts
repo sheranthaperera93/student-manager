@@ -1,9 +1,4 @@
-import {
-  HttpStatus,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { User } from 'src/entities/user.entity';
 import axios from 'axios';
 import * as xlsx from 'xlsx';
@@ -13,13 +8,14 @@ import { JobQueue } from 'src/entities/job_queue.entity';
 import { JOB_QUEUE_STATUS, JOB_TYPE } from 'src/core/constants';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
 import { ProducerService } from 'src/kafka/producer/producer.service';
-import { CustomException } from 'src/core/custom-exception';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FileExportService {
   constructor(
     private readonly kafka: ProducerService,
     private readonly jobQueueService: JobQueueService,
+    private readonly configService: ConfigService,
   ) {}
 
   async handleUserExport(message: string) {
@@ -52,6 +48,7 @@ export class FileExportService {
           to: fromAgeDate.toISOString().split('T')[0],
         },
       });
+      Logger.debug('Received user records: ' + JSON.stringify({ users }));
       // Prepare data set and write to file
       const { fileName, filePath } = await this.prepareDataSet(users);
 
@@ -59,21 +56,10 @@ export class FileExportService {
       // Update Job status and send notification
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
-      Logger.error('Error while handling user export', error);
       if (error.name === NotFoundException.name) {
-        throw new CustomException(
-          error.message,
-          1007,
-          error,
-          HttpStatus.NOT_FOUND,
-        );
+        Logger.error('Failed to fetch user records', error);
       } else {
-        throw new CustomException(
-          'Error while processing user export',
-          1009,
-          error,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
+        Logger.error('Error while handling user export', error);
       }
     }
   }
@@ -82,8 +68,14 @@ export class FileExportService {
     dateOfBirth: { from: string; to: string };
   }): Promise<User[]> => {
     try {
+      Logger.log('Fetching filtered user records');
+      Logger.log(
+        'FEDERATION_GATEWAY_URL',
+        this.configService.get('FEDERATION_GATEWAY_URL'),
+      );
+      Logger.log('params', params);
       const response = await axios.post(
-        'http://localhost:3001/graphql',
+        this.configService.get('FEDERATION_GATEWAY_URL')!,
         {
           query: `
             query getUsers($dateOfBirth: DateOfBirthRangeInput!) {
@@ -117,7 +109,16 @@ export class FileExportService {
   ): Promise<{ fileName: string; filePath: string }> {
     try {
       const workbook = xlsx.utils.book_new();
-      const worksheet = xlsx.utils.json_to_sheet(records);
+      // Convert date of birth to string of format 'dd/mm/yyyy'
+      const worksheet = xlsx.utils.json_to_sheet(
+        records.map((records) => ({
+          ...records,
+          date_of_birth: new Date(records.date_of_birth).toLocaleString(
+            'en-US',
+            { year: 'numeric', month: '2-digit', day: '2-digit' },
+          ),
+        })),
+      );
       xlsx.utils.book_append_sheet(workbook, worksheet, 'users');
       const buffer = xlsx.write(workbook, { type: 'buffer' });
 

@@ -11,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Course } from './entities/course.entity';
 import { User } from './entities/user.entity';
 import { UserResolver } from './user.resolver';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -25,6 +26,27 @@ import { UserResolver } from './user.resolver';
       buildSchemaOptions: {
         orphanedTypes: [User],
       },
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes the config globally available
+      envFilePath: process.env.NODE_ENV === 'test ' ? '.env.test' : '.env', // Path to your environment file
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService) => ({
+        type: 'postgres',
+        host: configService.get('POSTGRES_HOST'),
+        port: configService.get('POSTGRES_PORT'),
+        username: configService.get('POSTGRES_USERNAME'),
+        password: configService.get('POSTGRES_PASSWORD'),
+        database: configService.get('POSTGRES_DATABASE'),
+        synchronize: false, // Enable auto-sync
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+        migrationsRun: true,
+        autoLoadEntities: true,
+        logging: true,
+      }),
+      inject: [ConfigService]
     }),
   ],
   providers: [CourseResolver, CourseService, UserResolver],

@@ -100,7 +100,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         console.warn('Unknown job status:', parsedMsg.status);
     }
     this.fetchJobQueues();
-    this.studentService.refreshStudentList.next('reload-list');
+    this.studentService.refreshStudentList.next();
   }
 
   handleOnExportJobChange(parsedMsg: {
@@ -183,6 +183,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     ) {
       return 'User upload failed. Try again later';
     } else if (
+      type === JOB_QUEUE_TYPES.FILE_UPLOAD &&
+      status === JOB_QUEUE_STATUS.PENDING
+    ) {
+      return 'User upload pending';
+    } else if (
       type === JOB_QUEUE_TYPES.FILE_EXPORT &&
       status === JOB_QUEUE_STATUS.SUCCESS
     ) {
@@ -192,6 +197,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
       status === JOB_QUEUE_STATUS.FAILED
     ) {
       return 'User export failed. Try again later';
+    } else if (
+      type === JOB_QUEUE_TYPES.FILE_EXPORT &&
+      status === JOB_QUEUE_STATUS.PENDING
+    ) {
+      return 'User export pending';
     } else {
       return 'Unknown Notification';
     }
@@ -234,6 +244,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
             'error',
             'Failed to create student upload job. Please try again later.'
           );
+          this.isUploadDialogVisible = false;
         },
         complete: () => {
           this.isUploadDialogVisible = false;

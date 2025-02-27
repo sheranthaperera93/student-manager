@@ -16,7 +16,7 @@ import { Response } from '../model/response.model';
   providedIn: 'root',
 })
 export class StudentService {
-  public readonly refreshStudentList: Subject<string> = new Subject<string>();
+  public refreshStudentList: Subject<void> = new Subject<void>();
 
   constructor(
     private readonly apollo: Apollo,
@@ -46,7 +46,7 @@ export class StudentService {
         fetchPolicy: 'cache-and-network',
       })
       .valueChanges.pipe(
-        map((result: any) => ({
+        map((result: any) => <GridDataResult>({
           data: result.data.getUsers.items,
           total: result.data.getUsers.total,
         }))

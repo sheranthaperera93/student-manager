@@ -2,20 +2,34 @@ import { IntrospectAndCompose } from '@apollo/gateway';
 import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    GraphQLModule.forRoot<ApolloGatewayDriverConfig>({
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes the config globally available
+      envFilePath: '.env', // Path to your environment file
+    }),
+    GraphQLModule.forRootAsync<ApolloGatewayDriverConfig>({
       driver: ApolloGatewayDriver,
-      gateway: {
-        supergraphSdl: new IntrospectAndCompose({
-          subgraphs: [
-            { name: 'users', url: 'http://localhost:3002/graphql' },
-            { name: 'job-queue', url: 'http://localhost:3006/graphql' },
-            { name: 'courses', url: 'http://localhost:3004/graphql' },
-          ],
-        }),
-      },
+      useFactory: (configService) => ({
+        gateway: {
+          supergraphSdl: new IntrospectAndCompose({
+            subgraphs: [
+              { name: 'users', url: configService.get('USERS_GRAPHQL_URL') },
+              {
+                name: 'job-queue',
+                url: configService.get('JOB_QUEUE_GRAPHQL_URL'),
+              },
+              {
+                name: 'courses',
+                url: configService.get('COURSES_GRAPHQL_URL'),
+              },
+            ],
+          }),
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [],

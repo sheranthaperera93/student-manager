@@ -4,12 +4,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import { JOB_QUEUE_STATUS, JOB_TYPE } from 'src/core/constants';
-import { CustomException } from 'src/core/custom-exception';
+import { CustomException } from 'src/core/exception-handlers';
 import { JobQueue } from 'src/entities/job_queue.entity';
 import { User } from 'src/entities/user.entity';
 import { JobQueueService } from 'src/job-queue/job-queue.service';
@@ -25,20 +26,19 @@ export class FileUploadService {
     private readonly jobQueueRepository: Repository<JobQueue>,
     private readonly kafka: ProducerService,
     private readonly jobQueueService: JobQueueService,
+    private readonly configService: ConfigService,
   ) {}
 
   handleFileUpload = async (message: string) => {
+    const { fileName, filePath } = JSON.parse(message);
+    const jobItem = await this.jobQueueService.createUploadJob(
+      filePath,
+      fileName,
+      JOB_TYPE.UPLOADS,
+    );
+    const url = `${this.configService.get('USER_SERVICE_URL')!}/api/users/upload/${fileName}`;
     try {
-      const { fileName, filePath } = JSON.parse(message);
-      const jobItem = await this.jobQueueService.createUploadJob(
-        filePath,
-        fileName,
-        JOB_TYPE.UPLOADS,
-      );
-      const response = await axios.get(
-        `http://localhost:3002/api/users/upload/${fileName}`,
-        { responseType: 'arraybuffer' },
-      );
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
       const uploadDir = path.join(__dirname, 'uploads');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -54,12 +54,7 @@ export class FileUploadService {
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
       Logger.error('Error processing user bulk upload: ', error);
-      throw new CustomException(
-        'Error while processing user bulk upload',
-        1006,
-        error,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.FAILED);
     }
   };
 
@@ -70,10 +65,8 @@ export class FileUploadService {
         id: jobId,
       });
       const { fileName } = JSON.parse(jobItem.jobData);
-      const response = await axios.get(
-        `http://localhost:3002/api/users/upload/${fileName}`,
-        { responseType: 'arraybuffer' },
-      );
+      const url = `${this.configService.get('USER_SERVICE_URL')!}/api/users/upload/${fileName}`;
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
       const uploadDir = path.join(__dirname, 'uploads');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
@@ -92,31 +85,23 @@ export class FileUploadService {
         id: jobId,
       });
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.FAILED);
+      if (error.name === NotFoundException.name) {
+        Logger.error('Failed to find job item', {
+          jobId,
+          error,
+        });
+      }
       Logger.error('Error processing user retry bulk upload: ', {
         jobId,
         error,
       });
-      if (error.name === NotFoundException.name) {
-        throw new CustomException(
-          error.message,
-          1007,
-          error,
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      throw new CustomException(
-        'Error while processing user retry bulk upload',
-        1010,
-        error,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
     }
   };
 
   insertBulkRecords = async (records: UserInputDTO[]) => {
     try {
       const response = await axios.post(
-        'http://localhost:3001/graphql',
+        this.configService.get('FEDERATION_GATEWAY_URL')!,
         {
           query: `
             mutation bulkCreate($data: [UserInputDTO!]!) {
@@ -133,10 +118,18 @@ export class FileUploadService {
           },
         },
       );
+      if (response.data.errors) {
+        throw response.data.errors[0].message;
+      }
       return response.data.data.bulkCreate.message;
     } catch (error) {
       Logger.error('Error inserting bulk records: ', error);
-      throw new Error('Failed to insert bulk records');
+      throw new CustomException(
+        'Error while inserting bulk records',
+        1006,
+        error,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   };
 

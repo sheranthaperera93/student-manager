@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   Consumer,
   ConsumerRunConfig,
@@ -8,12 +9,18 @@ import {
 
 @Injectable()
 export class ConsumerService implements OnApplicationShutdown {
-  private readonly kafka = new Kafka({
-    brokers: ['host.docker.internal:9092'],
-    clientId: 'nestjs-consumer-server',
-  });
-
+  private readonly kafka: Kafka;
   private readonly consumers: Consumer[] = [];
+
+  constructor(private readonly configService: ConfigService) {
+    this.kafka = new Kafka({
+      brokers: [
+        this.configService.get('KAFKA_BROKER')!,
+      ],
+      clientId:
+        this.configService.get('KAFKA_CLIENT_ID'),
+    });
+  }
 
   async onApplicationShutdown() {
     for (const consumer of this.consumers) {
