@@ -11,7 +11,6 @@ import { environment } from '../../environments/environment';
 import { ExportParameters } from '../core/constants';
 import { Course } from '../model/course.model';
 import { Response } from '../model/response.model';
-import { FileInfo } from '@progress/kendo-angular-upload';
 
 @Injectable({
   providedIn: 'root',
@@ -47,10 +46,13 @@ export class StudentService {
         fetchPolicy: 'cache-and-network',
       })
       .valueChanges.pipe(
-        map((result: any) => <GridDataResult>({
-          data: result.data.getUsers.items,
-          total: result.data.getUsers.total,
-        }))
+        map(
+          (result: any) =>
+            <GridDataResult>{
+              data: result.data.getUsers.items,
+              total: result.data.getUsers.total,
+            }
+        )
       );
   };
 
@@ -124,7 +126,9 @@ export class StudentService {
 
   uploadFile = (files: File[]): Observable<any> => {
     const formData = new FormData();
-    files.forEach((file) => {formData.append('files', file)}); // Ensure rawFile is used
+    files.forEach((file) => {
+      formData.append('files', file);
+    }); // Ensure rawFile is used
     return this.http.post(environment.userService + '/users/upload', formData);
   };
 
