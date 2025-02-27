@@ -4,6 +4,7 @@ import {
   FileRestrictions,
   SelectEvent,
 } from '@progress/kendo-angular-upload';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-upload',
@@ -13,13 +14,15 @@ import {
 })
 export class UploadComponent {
   @Output() closeDialog = new EventEmitter<void>();
-  @Output() triggerUpload = new EventEmitter<FileInfo>();
+  @Output() triggerUpload = new EventEmitter<FileInfo[]>();
 
   uploadRestrictions: FileRestrictions = {
     allowedExtensions: ['.xls', '.xlsx'],
     maxFileSize: 5000000, // 5 MB in bytes
   };
-  selectedFile: FileInfo | undefined = undefined;
+  selectedFiles: FileInfo[] | undefined = undefined;
+
+  constructor(private readonly notificationService: NotificationService) {}
 
   /**
    * Handles the file selection event.
@@ -32,15 +35,19 @@ export class UploadComponent {
    * @param e - The file selection event containing the selected files.
    */
   onFileSelected(e: SelectEvent): void {
-    const file = e.files[0];
-    const fileExtension = file.extension?.toLowerCase();
-    if (fileExtension === '.xls' || fileExtension === '.xlsx') {
-      this.selectedFile = file;
-    } else {
-      this.selectedFile = undefined;
-      alert('Invalid file type. Please select an Excel file.');
-      e.preventDefault();
+    const files = e.files;
+    for (const file of files) {
+      if (file.validationErrors) {
+        this.notificationService.showNotification(
+          'error',
+          'Invalid file type. Please select an Excel file.'
+        );
+        this.selectedFiles = undefined;
+        e.preventDefault();
+        return;
+      }
     }
+    this.selectedFiles = files;
   }
 
   /**
@@ -48,7 +55,7 @@ export class UploadComponent {
    * Sets the selected file to undefined.
    */
   onFileRemoved(): void {
-    this.selectedFile = undefined;
+    this.selectedFiles = undefined;
   }
 
   /**
@@ -72,8 +79,8 @@ export class UploadComponent {
    * If a file is selected, it triggers the upload process and closes the component.
    */
   uploadFile(): void {
-    if (this.selectedFile) {
-      this.triggerUpload.emit(this.selectedFile);
+    if (this.selectedFiles) {
+      this.triggerUpload.emit(this.selectedFiles);
     }
   }
 }

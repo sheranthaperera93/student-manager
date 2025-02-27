@@ -1,7 +1,7 @@
 <div class="upload-container">
-  <p class="upload-instructions">Please select a file to upload:</p>
+  <p class="upload-instructions">Please select files to upload:</p>
   <kendo-fileselect
-    [multiple]="false"
+    [multiple]="true"
     (select)="onFileSelected($event)"
     (remove)="onFileRemoved()"
     [restrictions]="uploadRestrictions"
