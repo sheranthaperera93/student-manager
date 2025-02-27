@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Course } from './entities/course.entity';
 import { CustomException } from 'src/core/custom-exception';
 
@@ -11,8 +11,8 @@ export class CourseService {
     private readonly courseRepository: Repository<Course>,
   ) {}
 
-  findAllByUserId = async (id: number): Promise<Course[]> => {
-    return await this.courseRepository.findBy({ userId: id });
+  findByIds = async (ids: number[]): Promise<Course[]> => {
+    return await this.courseRepository.find({ where: { id: In(ids) } });
   };
 
   findOne = async (id: number): Promise<Course> => {

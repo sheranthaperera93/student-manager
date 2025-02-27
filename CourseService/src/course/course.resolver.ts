@@ -9,10 +9,15 @@ import {
 import { Course } from './entities/course.entity';
 import { User } from './entities/user.entity';
 import { CourseService } from './course.service';
+import { UserCourseService } from './user-course/user-course.service';
+import { UserCourse } from './entities/user-course.entity';
 
 @Resolver((of) => Course)
 export class CourseResolver {
-  constructor(private readonly courseService: CourseService) {}
+  constructor(
+    private readonly courseService: CourseService,
+    private readonly userCourseService: UserCourseService,
+  ) {}
 
   @Query((returns) => Course)
   async course(@Args({ name: 'id', type: () => Int }) id: number) {
@@ -24,8 +29,12 @@ export class CourseResolver {
     return await this.courseService.findAll();
   }
 
-  @ResolveField((of) => User)
-  user(@Parent() course: Course) {
-    return { __typename: 'User', id: course.userId };
+  @ResolveField((of) => [User])
+  async user(@Parent() course: Course) {
+    const userCourses = await this.userCourseService.findByCourseId(course.id);
+    return userCourses.map((uc: UserCourse) => ({
+      __typename: 'User',
+      id: uc.userId,
+    }));
   }
 }

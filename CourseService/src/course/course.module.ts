@@ -12,10 +12,12 @@ import { Course } from './entities/course.entity';
 import { User } from './entities/user.entity';
 import { UserResolver } from './user.resolver';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserCourseService } from './user-course/user-course.service';
+import { UserCourse } from './entities/user-course.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course]),
+    TypeOrmModule.forFeature([Course, UserCourse]),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
       autoSchemaFile: {
@@ -49,6 +51,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService]
     }),
   ],
-  providers: [CourseResolver, CourseService, UserResolver],
+  providers: [CourseResolver, CourseService, UserResolver, UserCourseService],
 })
 export class CourseModule {}
