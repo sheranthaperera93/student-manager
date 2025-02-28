@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { StudentService } from '../services/student.service';
-import { Course } from '../model/course.model';
+import { StudentService } from '../../services/student.service';
+import { Course } from '../../model/course.model';
 
 import { CourseListComponent } from './course-list.component';
 import { GridModule } from '@progress/kendo-angular-grid';

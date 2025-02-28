@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
-import { HeaderComponent } from './header/header.component';
+import { HeaderComponent } from './shared/header/header.component';
 import { AppBarModule } from '@progress/kendo-angular-navigation';
 import { SVGIconModule } from '@progress/kendo-angular-icons';
 import { BadgeModule } from '@progress/kendo-angular-indicators';

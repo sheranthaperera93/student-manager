@@ -1,22 +1,18 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Student, UpdateStudent } from '../model/student.model';
-import { StudentService } from '../services/student.service';
+import { Student, UpdateStudent } from '../../model/student.model';
+import { StudentService } from '../../services/student.service';
 import {
-  caretAltDownIcon,
-  caretAltUpIcon,
   pencilIcon,
   SVGIcon,
   trashIcon,
-  arrowRotateCwIcon,
   eyeIcon,
 } from '@progress/kendo-svg-icons';
-import { ExportParameters } from '../core/constants';
 import { State } from '@progress/kendo-data-query';
 
 import { debounceTime, Observable, Subscription } from 'rxjs';
 import { GridComponent, GridDataResult } from '@progress/kendo-angular-grid';
 import { PageChangeEvent } from '@progress/kendo-angular-pager';
-import { UtilService } from '../services/util.service';
+import { UtilService } from '../../services/util.service';
 import {
   DialogCloseResult,
   DialogRef,
@@ -24,8 +20,8 @@ import {
   DialogService,
 } from '@progress/kendo-angular-dialog';
 import { StudentUpdateComponent } from '../student-update/student-update.component';
-import { NotificationService } from '../services/notification.service';
-import { CourseListComponent } from '../course-list/course-list.component';
+import { NotificationService } from '../../services/notification.service';
+import { CourseListComponent } from '../../course/course-list/course-list.component';
 
 @Component({
   selector: 'app-student-list',
@@ -36,11 +32,10 @@ import { CourseListComponent } from '../course-list/course-list.component';
 export class StudentListComponent implements OnInit, OnDestroy {
   public editIcon: SVGIcon = pencilIcon;
   public deleteIcon: SVGIcon = trashIcon;
-  public carrotDownIcon: SVGIcon = caretAltDownIcon;
-  public carrotUpIcon: SVGIcon = caretAltUpIcon;
-  public refreshIcon: SVGIcon = arrowRotateCwIcon;
   public viewIcon: SVGIcon = eyeIcon;
+
   public showExportPopup: boolean = false;
+  public isUploadDialogVisible = false;
 
   // Paging variables
   public loading: boolean = false;
@@ -56,7 +51,6 @@ export class StudentListComponent implements OnInit, OnDestroy {
   students$!: Observable<GridDataResult>;
   private deleteSubscription: Subscription = new Subscription();
   private updateSubscription: Subscription = new Subscription();
-  private exportSubscription: Subscription = new Subscription();
 
   constructor(
     public readonly studentService: StudentService,
@@ -83,7 +77,6 @@ export class StudentListComponent implements OnInit, OnDestroy {
     this.reloadListSubscription.unsubscribe();
     if (this.updateSubscription) this.updateSubscription.unsubscribe();
     if (this.deleteSubscription) this.deleteSubscription.unsubscribe();
-    if (this.exportSubscription) this.exportSubscription.unsubscribe();
   }
 
   pageChange(event: PageChangeEvent): void {
@@ -218,24 +211,6 @@ export class StudentListComponent implements OnInit, OnDestroy {
           });
       }
     });
-  };
-
-  /**
-   * Handles the export action for the student list.
-   * Logs the export parameters and hides the export popup.
-   *
-   * @param parameters - The parameters used for exporting data.
-   */
-  onExportHandler = (parameters: ExportParameters): void => {
-    this.exportSubscription = this.studentService
-      .exportData(parameters)
-      .subscribe(() => {
-        this.notificationService.showNotification(
-          'success',
-          'Export initiated successfully'
-        );
-      });
-    this.showExportPopup = false;
   };
 
   onViewCoursersHandler = (student: Student) => {

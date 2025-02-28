@@ -1,11 +1,15 @@
 <div class="notification-content">
+  <div class="k-d-flex k-flex-col k-flex-nowrap" kendoTypography variant="h1">
+    No notifications available
+  </div>
   <kendo-listview
+    *ngIf="items.length > 0"
     [data]="items"
     [height]="400"
     containerClass="k-d-flex k-flex-col k-flex-nowrap"
   >
     <ng-template kendoListViewHeaderTemplate>
-      <div class="header">{{title}}</div>
+      <div class="header">Notifications</div>
     </ng-template>
     <ng-template
       kendoListViewItemTemplate

@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { StudentListComponent } from './student-list/student-list.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/students', pathMatch: 'full' },
-  { path: 'students', component: StudentListComponent },
+  { path: 'students', loadChildren: () => import('./student/student-routing.module').then(m => m.StudentRoutingModule) },
+  { path: 'courses', loadChildren: () => import('./course/course-routing.module').then(m => m.CourseRoutingModule) },
 ];
 
 @NgModule({

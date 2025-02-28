@@ -12,7 +12,6 @@ import { environment } from '../../../environments/environment';
 })
 export class NotificationsComponent {
   @Input() items: Notification[] = [];
-  @Input() title: string = '';
 
   constructor(private readonly notificationService: NotificationService) {}
 
