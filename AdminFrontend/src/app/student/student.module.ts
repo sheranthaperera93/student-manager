@@ -6,22 +6,22 @@ import { StudentUpdateComponent } from './student-update/student-update.componen
 import { KendoUIModule } from '../theme/kendo-ui/kendo-ui.module';
 import { StudentService } from '../services/student.service';
 import { SharedModule } from '../shared/shared.module';
-import { CourseModule } from '../course/course.module';
 import { StudentComponent } from './student.component';
 import { StudentRoutingModule } from './student-routing.module';
+import { StudentCoursesComponent } from './student-courses/student-courses.component';
 
 @NgModule({
   declarations: [
     StudentListComponent,
     StudentUpdateComponent,
     StudentComponent,
+    StudentCoursesComponent
   ],
   imports: [
     StudentRoutingModule,
     CommonModule,
     KendoUIModule,
     SharedModule,
-    CourseModule,
     ReactiveFormsModule,
   ],
   providers: [StudentService],

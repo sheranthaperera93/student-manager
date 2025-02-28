@@ -21,7 +21,7 @@ import {
 } from '@progress/kendo-angular-dialog';
 import { StudentUpdateComponent } from '../student-update/student-update.component';
 import { NotificationService } from '../../services/notification.service';
-import { CourseListComponent } from '../../course/course-list/course-list.component';
+import { StudentCoursesComponent } from '../student-courses/student-courses.component';
 
 @Component({
   selector: 'app-student-list',
@@ -217,14 +217,14 @@ export class StudentListComponent implements OnInit, OnDestroy {
     //This method opens a dialog box which contains the coursers followed by the student
     const dialogRef: DialogRef = this.dialogService.open({
       title: 'Coursers followed by ' + student.name,
-      content: CourseListComponent,
+      content: StudentCoursesComponent,
       actions: [{ text: 'Close', themeColor: 'primary' }],
       width: 600,
       height: 400,
       minWidth: 250,
     });
 
-    const component = dialogRef.content.instance as CourseListComponent;
+    const component = dialogRef.content.instance as StudentCoursesComponent;
     component.fetchCourseList(student.id);
   };
 }

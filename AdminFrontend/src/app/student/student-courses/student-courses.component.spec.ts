@@ -3,12 +3,12 @@ import { of, throwError } from 'rxjs';
 import { StudentService } from '../../services/student.service';
 import { Course } from '../../model/course.model';
 
-import { CourseListComponent } from './course-list.component';
+import { StudentCoursesComponent } from './student-courses.component';
 import { GridModule } from '@progress/kendo-angular-grid';
 
-describe('CourseListComponent', () => {
-  let component: CourseListComponent;
-  let fixture: ComponentFixture<CourseListComponent>;
+describe('StudentCoursesComponent', () => {
+  let component: StudentCoursesComponent;
+  let fixture: ComponentFixture<StudentCoursesComponent>;
   let studentService: jasmine.SpyObj<StudentService>;
 
   beforeEach(async () => {
@@ -20,11 +20,11 @@ describe('CourseListComponent', () => {
       imports: [
         GridModule,
       ],
-      declarations: [CourseListComponent],
+      declarations: [StudentCoursesComponent],
       providers: [{ provide: StudentService, useValue: studentService }],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CourseListComponent);
+    fixture = TestBed.createComponent(StudentCoursesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
