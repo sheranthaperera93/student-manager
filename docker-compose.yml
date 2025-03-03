@@ -51,6 +51,7 @@ services:
       - POSTGRES_DATABASE=studentmanagement
       - KAFKA_BROKER=kafka:9092
       - KAFKA_CLIENT_ID=nestjs-consumer-server
+      - COURSES_GRAPHQL_URL=http://course-service:3004/graphql
     volumes:
       - user_data:/app/dist/uploads
     depends_on:

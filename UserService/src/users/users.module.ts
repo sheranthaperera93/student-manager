@@ -11,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { UsersController } from './users.controller';
 import { KafkaModule } from 'src/kafka/kafka.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   providers: [UsersResolver, UsersService],
@@ -25,6 +26,7 @@ import { KafkaModule } from 'src/kafka/kafka.module';
       plugins: [ApolloServerPluginInlineTrace()],
     }),
     KafkaModule,
+    HttpModule
   ],
   controllers: [UsersController],
 })

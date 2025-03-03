@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Course } from './entities/course.entity';
 import { CustomException } from 'src/core/custom-exception';
+import { UserCourse } from './entities/user-course.entity';
 
 @Injectable()
 export class CourseService {
   constructor(
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @InjectRepository(UserCourse)
+    private readonly userCourseRepository: Repository<UserCourse>,
   ) {}
 
   findByIds = async (ids: number[]): Promise<Course[]> => {

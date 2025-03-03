@@ -5,7 +5,7 @@ import { State } from '@progress/kendo-data-query';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GridDataResult } from '@progress/kendo-angular-grid';
-import { UpdateStudent } from '../model/student.model';
+import { Student, UpdateStudent } from '../model/student.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { ExportParameters } from '../core/constants';
@@ -56,9 +56,35 @@ export class StudentService {
       );
   };
 
+  getStudentById = (studentId: number): Observable<Student> => {
+    return this.apollo
+      .watchQuery({
+        query: gql`
+          query getUser($id: ID!) {
+            getUser(id: $id) {
+              id
+              name
+              email
+              date_of_birth
+              courses {
+                id
+                name
+                description
+              }
+            }
+          }
+        `,
+        variables: {
+          id: studentId,
+        },
+        fetchPolicy: 'cache-and-network',
+      })
+      .valueChanges.pipe(map((result: any) => result.data.getUser));
+  };
+
   getCoursesForStudentId = (studentId: number): Observable<Course[]> => {
     return this.apollo
-      .query({
+      .watchQuery({
         query: gql`
           query getUser($id: ID!) {
             getUser(id: $id) {
@@ -73,8 +99,9 @@ export class StudentService {
         variables: {
           id: studentId,
         },
+        fetchPolicy: 'cache-and-network',
       })
-      .pipe(map((result: any) => result.data.getUser.courses));
+      .valueChanges.pipe(map((result: any) => result.data.getUser.courses));
   };
 
   updateStudent = (id: number, data: UpdateStudent): Observable<Response> => {

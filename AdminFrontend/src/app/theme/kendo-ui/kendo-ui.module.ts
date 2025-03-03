@@ -15,6 +15,8 @@ import { LabelModule } from '@progress/kendo-angular-label';
 import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 import { ListViewModule } from '@progress/kendo-angular-listview';
 import { NotificationModule } from '@progress/kendo-angular-notification';
+import { ListBoxModule } from '@progress/kendo-angular-listbox';
+import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 
 @NgModule({
   declarations: [],
@@ -36,6 +38,8 @@ import { NotificationModule } from '@progress/kendo-angular-notification';
     AvatarModule,
     NotificationModule,
     FormFieldModule,
+    ListBoxModule,
+    DropDownsModule
   ],
   exports: [
     NavigationModule,
@@ -54,6 +58,8 @@ import { NotificationModule } from '@progress/kendo-angular-notification';
     AvatarModule,
     NotificationModule,
     FormFieldModule,
+    ListBoxModule,
+    DropDownsModule
   ],
 })
 export class KendoUIModule {}

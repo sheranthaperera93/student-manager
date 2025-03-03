@@ -1,5 +1,5 @@
 <div class="notification-content">
-  <div class="k-d-flex k-flex-col k-flex-nowrap" kendoTypography variant="h1">
+  <div class="k-d-flex k-flex-col k-flex-nowrap" kendoTypography variant="h1" *ngIf="items.length == 0">
     No notifications available
   </div>
   <kendo-listview

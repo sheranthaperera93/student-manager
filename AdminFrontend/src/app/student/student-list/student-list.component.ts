@@ -5,7 +5,7 @@ import {
   pencilIcon,
   SVGIcon,
   trashIcon,
-  eyeIcon,
+  inboxIcon,
 } from '@progress/kendo-svg-icons';
 import { State } from '@progress/kendo-data-query';
 
@@ -32,7 +32,7 @@ import { StudentCoursesComponent } from '../student-courses/student-courses.comp
 export class StudentListComponent implements OnInit, OnDestroy {
   public editIcon: SVGIcon = pencilIcon;
   public deleteIcon: SVGIcon = trashIcon;
-  public viewIcon: SVGIcon = eyeIcon;
+  public viewCoursesIcon: SVGIcon = inboxIcon;
 
   public showExportPopup: boolean = false;
   public isUploadDialogVisible = false;
@@ -131,15 +131,13 @@ export class StudentListComponent implements OnInit, OnDestroy {
       title: 'Update Student',
       content: StudentUpdateComponent,
       actions: [],
+      minWidth: '50%',
+      maxHeight: '75%',
     });
 
-    // Get update component instance
+    // Call populate data inside the component instance
     const userInfo = dialogRef.content.instance as StudentUpdateComponent;
-    userInfo.editForm.patchValue({
-      name: student.name,
-      email: student.email,
-      dateOfBirth: new Date(student.date_of_birth), // Convert to Date object
-    });
+    userInfo.populateData(student.id);
 
     dialogRef.result.subscribe((result: DialogResult) => {
       if (!(result instanceof DialogCloseResult)) {
@@ -148,6 +146,9 @@ export class StudentListComponent implements OnInit, OnDestroy {
         updateData.date_of_birth =
           userInfo.editForm.controls['dateOfBirth'].value;
         updateData.email = userInfo.editForm.controls['email'].value;
+        updateData.courses = userInfo.editForm.controls['courses'].value.map(
+          (course: any) => parseInt(course.id)
+        );
 
         this.updateSubscription = this.studentService
           .updateStudent(student.id, updateData)

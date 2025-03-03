@@ -19,6 +19,7 @@ export class StudentCoursesComponent {
     this.studentService.getCoursesForStudentId(studentId).subscribe({
       next: (result: Course[]) => {
         this.gridData = result;
+        this.loading = false;
       },
       error: (error: any) => {
         console.error('Error fetching course list:', error);

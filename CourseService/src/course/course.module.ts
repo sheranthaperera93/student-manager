@@ -14,6 +14,7 @@ import { UserResolver } from './user.resolver';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserCourseService } from './user-course/user-course.service';
 import { UserCourse } from './entities/user-course.entity';
+import { UserCourseResolver } from './user-course/user-course.resolver';
 
 @Module({
   imports: [
@@ -51,6 +52,6 @@ import { UserCourse } from './entities/user-course.entity';
       inject: [ConfigService]
     }),
   ],
-  providers: [CourseResolver, CourseService, UserResolver, UserCourseService],
+  providers: [CourseResolver, CourseService, UserResolver, UserCourseResolver, UserCourseService],
 })
 export class CourseModule {}
