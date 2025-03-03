@@ -9,3 +9,8 @@ export class Course {
     this.description = description;
   }
 }
+
+export class UpdateCourse {
+  name: string = '';
+  description: string = '';
+}

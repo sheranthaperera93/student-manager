@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Student, UpdateStudent } from '../../model/student.model';
+import { Student } from '../../model/student.model';
 import { StudentService } from '../../services/student.service';
 import {
   pencilIcon,
@@ -9,7 +9,7 @@ import {
 } from '@progress/kendo-svg-icons';
 import { State } from '@progress/kendo-data-query';
 
-import { debounceTime, Observable, Subscription } from 'rxjs';
+import { debounceTime, Subscription } from 'rxjs';
 import { GridComponent, GridDataResult } from '@progress/kendo-angular-grid';
 import { PageChangeEvent } from '@progress/kendo-angular-pager';
 import { UtilService } from '../../services/util.service';
@@ -50,7 +50,6 @@ export class StudentListComponent implements OnInit, OnDestroy {
   private fetchListSubscription: Subscription = new Subscription();
   private reloadListSubscription: Subscription = new Subscription();
   private deleteSubscription: Subscription = new Subscription();
-  private updateSubscription: Subscription = new Subscription();
 
   constructor(
     public readonly studentService: StudentService,
@@ -76,7 +75,6 @@ export class StudentListComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.reloadListSubscription.unsubscribe();
     this.fetchListSubscription.unsubscribe();
-    if (this.updateSubscription) this.updateSubscription.unsubscribe();
     if (this.deleteSubscription) this.deleteSubscription.unsubscribe();
   }
 
@@ -132,43 +130,16 @@ export class StudentListComponent implements OnInit, OnDestroy {
       title: 'Update Student',
       content: StudentUpdateComponent,
       actions: [],
-      minWidth: '50%',
-      maxHeight: '75%',
+      width: '25%'
     });
 
     // Call populate data inside the component instance
-    const userInfo = dialogRef.content.instance as StudentUpdateComponent;
-    userInfo.populateData(student.id);
+    const componentInstance = dialogRef.content.instance as StudentUpdateComponent;
+    componentInstance.populateData(student.id);
 
     dialogRef.result.subscribe((result: DialogResult) => {
       if (!(result instanceof DialogCloseResult)) {
-        const updateData = new UpdateStudent();
-        updateData.name = userInfo.editForm.controls['name'].value;
-        updateData.date_of_birth =
-          userInfo.editForm.controls['dateOfBirth'].value;
-        updateData.email = userInfo.editForm.controls['email'].value;
-        updateData.courses = userInfo.editForm.controls['courses'].value.map(
-          (course: any) => parseInt(course.id)
-        );
-
-        this.updateSubscription = this.studentService
-          .updateStudent(student.id, updateData)
-          .subscribe({
-            next: () => {
-              this.notificationService.showNotification(
-                'success',
-                'Student updated successfully'
-              );
-              this.refreshData();
-            },
-            error: (error) => {
-              this.notificationService.showNotification(
-                'error',
-                error.message,
-                { hideAfter: 4000 }
-              );
-            },
-          });
+        this.refreshData();
       }
     });
   };

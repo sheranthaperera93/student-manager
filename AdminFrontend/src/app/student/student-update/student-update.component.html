@@ -1,4 +1,4 @@
-<form class="k-form k-form-md" [formGroup]="editForm">
+<form class="k-form k-form-md" [formGroup]="studentEditFrm">
   <fieldset class="k-form-fieldset">
     <kendo-formfield>
       <kendo-label
@@ -9,7 +9,7 @@
       <kendo-textbox formControlName="name" #name required></kendo-textbox>
 
       <kendo-formerror
-        *ngIf="editForm.get('name')?.invalid && editForm.get('name')?.touched"
+        *ngIf="studentEditFrm.get('name')?.invalid && studentEditFrm.get('name')?.touched"
       >
         Name is required.
       </kendo-formerror>
@@ -24,7 +24,7 @@
       <kendo-textbox formControlName="email" #email required></kendo-textbox>
 
       <kendo-formerror
-        *ngIf="editForm.get('email')?.invalid && editForm.get('email')?.touched"
+        *ngIf="studentEditFrm.get('email')?.invalid && studentEditFrm.get('email')?.touched"
       >
         Valid email is required.
       </kendo-formerror>
@@ -47,8 +47,8 @@
       </kendo-datepicker>
       <kendo-formerror
         *ngIf="
-          editForm.get('dateOfBirth')?.invalid &&
-          editForm.get('dateOfBirth')?.touched
+          studentEditFrm.get('dateOfBirth')?.invalid &&
+          studentEditFrm.get('dateOfBirth')?.touched
         "
       >
         Date of Birth is required.
@@ -86,7 +86,7 @@
       kendoButton
       class="k-button submit-button"
       (click)="onUpdate()"
-      [disabled]="editForm.invalid"
+      [disabled]="studentEditFrm.invalid"
     >
       Update
     </button>

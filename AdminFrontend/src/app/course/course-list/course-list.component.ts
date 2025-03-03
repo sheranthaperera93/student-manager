@@ -5,6 +5,15 @@ import { State } from '@progress/kendo-data-query';
 import { debounceTime, Subscription } from 'rxjs';
 import { PageChangeEvent } from '@progress/kendo-angular-pager';
 import { Course } from '../../model/course.model';
+import { pencilIcon, SVGIcon, trashIcon } from '@progress/kendo-svg-icons';
+import {
+  DialogCloseResult,
+  DialogRef,
+  DialogResult,
+  DialogService,
+} from '@progress/kendo-angular-dialog';
+import { CourseUpdateComponent } from '../course-update/course-update.component';
+import { NotificationService } from '../../services/notification.service';
 
 @Component({
   selector: 'app-course-list',
@@ -19,20 +28,28 @@ export class CourseListComponent implements OnInit, AfterViewInit {
     skip: 0,
     take: 10,
   };
-  private readonly fetchStudentListSubscription: Subscription =
-    new Subscription();
+  public editIcon: SVGIcon = pencilIcon;
+  public deleteIcon: SVGIcon = trashIcon;
+  private fetchCoursesSubscription: Subscription = new Subscription();
+  private deleteSubscription: Subscription = new Subscription();
 
   gridData: GridDataResult = { data: [], total: 0 };
   @ViewChild('grid') private readonly grid!: GridComponent;
 
-  constructor(private readonly courseService: CourseService) {}
+  constructor(
+    private readonly courseService: CourseService,
+    private readonly dialogService: DialogService,
+    private readonly notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
   }
 
   ngOnDestroy(): void {
-    this.fetchStudentListSubscription.unsubscribe();
+    if (this.fetchCoursesSubscription)
+      this.fetchCoursesSubscription.unsubscribe();
+    if (this.deleteSubscription) this.deleteSubscription.unsubscribe();
   }
 
   public ngAfterViewInit(): void {
@@ -48,18 +65,78 @@ export class CourseListComponent implements OnInit, AfterViewInit {
 
   loadData() {
     this.loading = true;
-    this.courseService.getCourses(this.pageState).subscribe({
-      next: (res: { data: Course[]; total: number }) => {
-        this.gridData = {
-          data: res.data,
-          total: res.total,
-        };
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.loading = false;
-      },
-    });
+    this.fetchCoursesSubscription = this.courseService
+      .getCourses(this.pageState)
+      .subscribe({
+        next: (res: { data: Course[]; total: number }) => {
+          this.gridData = {
+            data: res.data,
+            total: res.total,
+          };
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error(err);
+          this.loading = false;
+        },
+      });
   }
+
+  public refreshData = () => {
+    this.pageState = { skip: 0, take: 10 };
+    this.loadData();
+  };
+
+  onEditStudentHandler = async (course: Course) => {
+    const dialogRef: DialogRef = this.dialogService.open({
+      title: 'Update Student',
+      content: CourseUpdateComponent,
+      actions: [],
+      width: '25%',
+    });
+
+    const componentInstance = dialogRef.content
+      .instance as CourseUpdateComponent;
+    componentInstance.populateCourseDetails(course);
+
+    dialogRef.result.subscribe((result: DialogResult) => {
+      if (!(result instanceof DialogCloseResult)) {
+        this.refreshData();
+      }
+    });
+  };
+
+  onDeleteStudentHandler = async (course: Course) => {
+    const dialogRef: DialogRef = this.dialogService.open({
+      title: 'Delete Course',
+      content: 'Are you sure you want to delete this course?',
+      actions: [{ text: 'No' }, { text: 'Yes', themeColor: 'primary' }],
+      width: 450,
+      height: 200,
+      minWidth: 250,
+    });
+
+    dialogRef.result.subscribe((result: DialogResult) => {
+      if (!(result instanceof DialogCloseResult) && result.text == 'Yes') {
+        this.deleteSubscription = this.courseService
+          .deleteCourse(course.id)
+          .subscribe({
+            next: () => {
+              this.notificationService.showNotification(
+                'success',
+                'Course deleted successfully'
+              );
+              this.refreshData();
+            },
+            error: (error) => {
+              this.notificationService.showNotification(
+                'error',
+                error.message,
+                { hideAfter: 4000 }
+              );
+            },
+          });
+      }
+    });
+  };
 }
