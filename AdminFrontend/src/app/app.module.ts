@@ -15,6 +15,7 @@ import { SocketService } from './services/socket.service';
 import { KendoUIModule } from './theme/kendo-ui/kendo-ui.module';
 import { SharedModule } from './shared/shared.module';
 import { StudentModule } from './student/student.module';
+import { CourseModule } from './course/course.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -27,6 +28,7 @@ import { StudentModule } from './student/student.module';
     SharedModule,
     KendoUIModule,
     StudentModule,
+    CourseModule,
   ],
   providers: [provideHttpClient(withInterceptorsFromDi()), SocketService],
   bootstrap: [AppComponent],

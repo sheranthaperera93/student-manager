@@ -55,7 +55,7 @@ export class StudentUpdateComponent {
     return new Promise((resolve, reject) => {
       this.courseService.getCourses().subscribe({
         next: (data) => {
-          resolve(data);
+          resolve(data.data);
         },
         error: (error) => reject,
       });

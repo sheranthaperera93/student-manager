@@ -47,8 +47,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
   gridData: GridDataResult = { data: [], total: 0 };
   @ViewChild('grid') private readonly grid!: GridComponent;
 
+  private fetchListSubscription: Subscription = new Subscription();
   private reloadListSubscription: Subscription = new Subscription();
-  students$!: Observable<GridDataResult>;
   private deleteSubscription: Subscription = new Subscription();
   private updateSubscription: Subscription = new Subscription();
 
@@ -75,6 +75,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.reloadListSubscription.unsubscribe();
+    this.fetchListSubscription.unsubscribe();
     if (this.updateSubscription) this.updateSubscription.unsubscribe();
     if (this.deleteSubscription) this.deleteSubscription.unsubscribe();
   }
@@ -90,7 +91,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
   };
 
   loadData() {
-    this.studentService
+    this.fetchListSubscription = this.studentService
       .getStudents(this.pageState)
       .subscribe((res: { data: Student[]; total: number }) => {
         this.gridData = {

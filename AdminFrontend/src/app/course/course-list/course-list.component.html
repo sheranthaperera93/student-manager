@@ -1,0 +1,19 @@
+<div class="card">
+  <div class="card-body">
+    <kendo-grid
+      #grid
+      [data]="gridData"
+      [loading]="loading"
+      [skip]="pageState.skip"
+      [pageSize]="pageState.take"
+      [rowHeight]="36"
+      [height]="350"
+      scrollable="virtual"
+    >
+      <kendo-grid-column field="id" title="ID" [width]="100">
+      </kendo-grid-column>
+      <kendo-grid-column field="name" title="Name"> </kendo-grid-column>
+      <kendo-grid-column field="description" title="Description"> </kendo-grid-column>
+    </kendo-grid>
+  </div>
+</div>

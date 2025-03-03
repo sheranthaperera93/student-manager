@@ -4,6 +4,7 @@ import { In, Repository } from 'typeorm';
 import { Course } from './entities/course.entity';
 import { CustomException } from 'src/core/custom-exception';
 import { UserCourse } from './entities/user-course.entity';
+import { PaginatedCourses } from './models/paginated-courses.model';
 
 @Injectable()
 export class CourseService {
@@ -31,7 +32,22 @@ export class CourseService {
     }
   };
 
-  findAll = async (): Promise<Course[]> => {
-    return await this.courseRepository.find();
+  findAll = async ({
+    skip,
+    take,
+  }: {
+    skip?: number;
+    take?: number;
+  }): Promise<PaginatedCourses> => {
+    const query = this.courseRepository.createQueryBuilder('course');
+    if (skip !== undefined) {
+      query.skip(skip);
+    }
+    if (take !== undefined) {
+      query.take(take);
+    }
+    query.orderBy('course.id', 'ASC');
+    const [items, total] = await query.getManyAndCount();
+    return { items, total };
   };
 }
