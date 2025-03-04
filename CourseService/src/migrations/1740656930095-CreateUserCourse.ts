@@ -40,7 +40,7 @@ export class CreateUserCourse1740656930095 implements MigrationInterface {
         columnNames: ['userId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'user',
-        onDelete: 'CASCADE',
+        onDelete: 'RESTRICT',
       }),
     );
 
@@ -50,7 +50,7 @@ export class CreateUserCourse1740656930095 implements MigrationInterface {
         columnNames: ['courseId'],
         referencedColumnNames: ['id'],
         referencedTableName: 'course',
-        onDelete: 'CASCADE',
+        onDelete: 'RESTRICT',
       }),
     );
   }
