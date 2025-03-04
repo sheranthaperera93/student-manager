@@ -30,10 +30,14 @@ export class UsersService {
   findAll = async ({
     skip,
     take,
+    name,
+    email,
     dateOfBirth,
   }: {
     skip?: number;
     take?: number;
+    name?: string;
+    email?: string;
     dateOfBirth?: DateOfBirthRangeInput;
   }): Promise<PaginatedUsers> => {
     const query = this.userRepository.createQueryBuilder('user');
@@ -46,6 +50,14 @@ export class UsersService {
       if (dateOfBirth.to) {
         query.andWhere('user.date_of_birth <= :to', { to: dateOfBirth.to });
       }
+    }
+
+    if (name) {
+      query.andWhere('LOWER(user.name) LIKE LOWER(:name)', { name: `%${name}%` });
+    }
+
+    if (email) {
+      query.andWhere('LOWER(user.email) LIKE LOWER(:email)', { email: `%${email}%` });
     }
 
     if (skip !== undefined) {

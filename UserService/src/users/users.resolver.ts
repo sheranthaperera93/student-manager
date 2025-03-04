@@ -14,10 +14,12 @@ export class UsersResolver {
   async getUsers(
     @Args('skip', { type: () => Number, nullable: true }) skip?: number,
     @Args('take', { type: () => Number, nullable: true }) take?: number,
+    @Args('name', {type: () => String, nullable: true}) name?: string,
+    @Args('email', {type: () => String, nullable: true}) email?: string,
     @Args('dateOfBirth', { type: () => DateOfBirthRangeInput, nullable: true })
     dateOfBirth?: DateOfBirthRangeInput,
   ): Promise<PaginatedUsers> {
-    return this.userService.findAll({ skip, take, dateOfBirth });
+    return this.userService.findAll({ skip, take, name, email, dateOfBirth });
   }
 
   @Query((returns) => User)

@@ -9,13 +9,15 @@ import { SharedModule } from '../shared/shared.module';
 import { StudentComponent } from './student.component';
 import { StudentRoutingModule } from './student-routing.module';
 import { StudentCoursesComponent } from './student-courses/student-courses.component';
+import { StudentSearchComponent } from './student-search/student-search.component';
 
 @NgModule({
   declarations: [
     StudentListComponent,
     StudentUpdateComponent,
     StudentComponent,
-    StudentCoursesComponent
+    StudentCoursesComponent,
+    StudentSearchComponent
   ],
   imports: [
     StudentRoutingModule,

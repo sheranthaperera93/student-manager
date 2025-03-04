@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import {
-  arrowRotateCwIcon,
   caretAltDownIcon,
   caretAltUpIcon,
   SVGIcon,
@@ -24,7 +23,6 @@ export class StudentComponent {
   public carrotDownIcon: SVGIcon = caretAltDownIcon;
   public carrotUpIcon: SVGIcon = caretAltUpIcon;
   public uploadIcon: SVGIcon = uploadIcon;
-  public refreshIcon: SVGIcon = arrowRotateCwIcon;
 
   private exportSubscription: Subscription = new Subscription();
 
@@ -36,10 +34,6 @@ export class StudentComponent {
   ngOnDestroy(): void {
     if (this.exportSubscription) this.exportSubscription.unsubscribe();
   }
-
-  refreshData = () => {
-    this.studentService.refreshStudentList.next();
-  };
 
   openUploadDialog(): void {
     this.isUploadDialogVisible = true;

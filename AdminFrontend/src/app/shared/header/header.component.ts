@@ -12,6 +12,7 @@ import { StudentService } from '../../services/student.service';
 import { SocketService } from '../../services/socket.service';
 import { Subscription } from 'rxjs';
 import { UtilService } from '../../services/util.service';
+import { StudentSearch } from '../../model/student-search.model';
 
 @Component({
   selector: 'app-header',
@@ -69,7 +70,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         console.warn('Unknown job status:', parsedMsg.status);
     }
     this.fetchJobQueues();
-    this.studentService.refreshStudentList.next();
+    this.studentService.refreshStudentList.next(new StudentSearch());
   }
 
   handleOnExportJobChange(parsedMsg: {

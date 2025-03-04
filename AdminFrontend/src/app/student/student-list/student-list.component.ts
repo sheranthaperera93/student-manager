@@ -22,6 +22,7 @@ import {
 import { StudentUpdateComponent } from '../student-update/student-update.component';
 import { NotificationService } from '../../services/notification.service';
 import { StudentCoursesComponent } from '../student-courses/student-courses.component';
+import { StudentSearch } from '../../model/student-search.model';
 
 @Component({
   selector: 'app-student-list',
@@ -43,6 +44,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
     skip: 0,
     take: 10,
   };
+  public searchParams: StudentSearch = new StudentSearch();
 
   gridData: GridDataResult = { data: [], total: 0 };
   @ViewChild('grid') private readonly grid!: GridComponent;
@@ -60,9 +62,12 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reloadListSubscription =
-      this.studentService.refreshStudentList.subscribe(() => {
-        this.refreshData();
-      });
+      this.studentService.refreshStudentList.subscribe(
+        (payload: StudentSearch) => {
+          this.searchParams = payload;
+          this.refreshData();
+        }
+      );
     this.loadData();
   }
 
@@ -90,7 +95,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   loadData() {
     this.fetchListSubscription = this.studentService
-      .getStudents(this.pageState)
+      .getStudents(this.pageState, this.searchParams)
       .subscribe((res: { data: Student[]; total: number }) => {
         this.gridData = {
           data: res.data,
@@ -130,11 +135,12 @@ export class StudentListComponent implements OnInit, OnDestroy {
       title: 'Update Student',
       content: StudentUpdateComponent,
       actions: [],
-      width: '25%'
+      width: '25%',
     });
 
     // Call populate data inside the component instance
-    const componentInstance = dialogRef.content.instance as StudentUpdateComponent;
+    const componentInstance = dialogRef.content
+      .instance as StudentUpdateComponent;
     componentInstance.populateData(student.id);
 
     dialogRef.result.subscribe((result: DialogResult) => {

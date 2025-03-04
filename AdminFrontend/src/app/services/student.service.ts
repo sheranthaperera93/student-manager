@@ -11,24 +11,41 @@ import { environment } from '../../environments/environment';
 import { ExportParameters } from '../core/constants';
 import { Course } from '../model/course.model';
 import { Response } from '../model/response.model';
+import { StudentSearch } from '../model/student-search.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StudentService {
-  public refreshStudentList: Subject<void> = new Subject<void>();
+  public refreshStudentList: Subject<StudentSearch> =
+    new Subject<StudentSearch>();
 
   constructor(
     private readonly apollo: Apollo,
     private readonly http: HttpClient
   ) {}
 
-  getStudents = (state: State): Observable<GridDataResult> => {
+  getStudents = (
+    state: State,
+    searchParams: StudentSearch
+  ): Observable<GridDataResult> => {
     return this.apollo
       .watchQuery({
         query: gql`
-          query getUsers($skip: Float, $take: Float) {
-            getUsers(skip: $skip, take: $take) {
+          query getUsers(
+            $skip: Float
+            $take: Float
+            $name: String!
+            $email: String!
+            $dateOfBirth: DateOfBirthRangeInput!
+          ) {
+            getUsers(
+              skip: $skip
+              take: $take
+              name: $name
+              email: $email
+              dateOfBirth: $dateOfBirth
+            ) {
               items {
                 id
                 name
@@ -42,6 +59,9 @@ export class StudentService {
         variables: {
           skip: state.skip,
           take: state.take,
+          name: searchParams?.name,
+          email: searchParams?.email,
+          dateOfBirth: searchParams?.dob,
         },
         fetchPolicy: 'cache-and-network',
       })

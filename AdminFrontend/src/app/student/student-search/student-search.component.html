@@ -1,0 +1,60 @@
+<div class="card">
+  <div class="card-body">
+    <form class="k-form k-form-md" [formGroup]="studentSearchFrm">
+      <kendo-gridlayout [rows]="[90]" [cols]="[90, 90, 90]" [gap]="1">
+        <kendo-gridlayout-item [col]="1" [row]="1" [colSpan]="3" class="box">
+          <kendo-formfield>
+            <kendo-label
+              labelCssClass="k-form-label"
+              [for]="name"
+              text="Name"
+            ></kendo-label>
+            <kendo-textbox formControlName="name" #name></kendo-textbox>
+          </kendo-formfield>
+        </kendo-gridlayout-item>
+        <kendo-gridlayout-item [col]="5" [row]="1" [colSpan]="2" class="box">
+          <kendo-formfield>
+            <kendo-label
+              labelCssClass="k-form-label"
+              [for]="email"
+              text="Email"
+            ></kendo-label>
+            <kendo-textbox formControlName="email" #email></kendo-textbox>
+          </kendo-formfield>
+        </kendo-gridlayout-item>
+        <kendo-gridlayout-item [col]="8" [row]="1" [colSpan]="2" class="box">
+          <kendo-formfield>
+            <kendo-label
+              labelCssClass="k-form-label"
+              text="Date of Birth"
+            ></kendo-label>
+            <kendo-daterange>
+              <kendo-dateinput
+                kendoDateRangeStartInput
+                autoCorrectOn="blur"
+                format="dd-MM-yyyy"
+                formControlName="dateOfBirthStart"
+              ></kendo-dateinput>
+              <kendo-dateinput
+                kendoDateRangeEndInput
+                autoCorrectOn="blur"
+                format="dd-MM-yyyy"
+                formControlName="dateOfBirthEnd"
+              ></kendo-dateinput>
+            </kendo-daterange>
+          </kendo-formfield>
+        </kendo-gridlayout-item>
+      </kendo-gridlayout>
+    </form>
+    <div class="list-actions">
+      <button kendoButton (click)="handleOnClear()">
+        <kendo-svgicon [icon]="resetIcon"></kendo-svgicon>
+        Clear
+      </button>
+      <button kendoButton (click)="handleOnSearch()">
+        <kendo-svgicon [icon]="searchIcon"></kendo-svgicon>
+        Search
+      </button>
+    </div>
+  </div>
+</div>
