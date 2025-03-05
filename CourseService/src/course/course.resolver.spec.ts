@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CourseResolver } from './course.resolver';
 import { CourseService } from './course.service';
-import { Course } from './entities/course.entity';
+import { Course } from '../entities/course.entity';
 
 describe('CourseResolver', () => {
   let resolver: CourseResolver;

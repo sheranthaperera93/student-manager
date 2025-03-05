@@ -1,5 +1,6 @@
 import { Directive, Field, ID, ObjectType } from '@nestjs/graphql';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity('course')
 @Directive('@key(fields: "id")')
@@ -16,4 +17,7 @@ export class Course {
   @Field()
   @Column()
   description: string;
+
+  @Field((type) => [User])
+  users?: User[];
 }

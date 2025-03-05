@@ -1,13 +1,30 @@
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Course } from './entities/course.entity';
+import {
+  Args,
+  ID,
+  Int,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
+import { Course } from '../entities/course.entity';
 import { CourseService } from './course.service';
 import { PaginatedCourses } from './models/paginated-courses.model';
 import { CourseInputDTO } from './models/course-input.dto';
 import { Response } from './models/response.model';
+import { User } from '../entities/user.entity';
+import { UserCourseService } from './user-course/user-course.service';
+import { UserCourse } from '../entities/user-course.entity';
+import { UserService } from './user.service';
 
 @Resolver((of) => Course)
 export class CourseResolver {
-  constructor(private readonly courseService: CourseService) {}
+  constructor(
+    private readonly courseService: CourseService,
+    private readonly userCourseService: UserCourseService,
+    private readonly userService: UserService,
+  ) {}
 
   @Query((returns) => Course)
   async getCourseById(@Args({ name: 'id', type: () => Int }) id: number) {
@@ -19,7 +36,7 @@ export class CourseResolver {
     @Args('skip', { type: () => Number, nullable: true }) skip?: number,
     @Args('take', { type: () => Number, nullable: true }) take?: number,
   ): Promise<PaginatedCourses> {
-    return await this.courseService.findAll({skip, take});
+    return await this.courseService.findAll({ skip, take });
   }
 
   @Mutation((returns) => Response)
@@ -46,5 +63,12 @@ export class CourseResolver {
       data: { deleted: true },
     };
     return response;
+  }
+
+  @ResolveField((of) => [User])
+  async users(@Parent() course: Course): Promise<User[]> {
+    const userCourses = await this.userCourseService.findByUserId(course.id);
+    const courseIds = userCourses.map((uc: UserCourse) => uc.courseId);
+    return await this.userService.findByIds(courseIds);
   }
 }

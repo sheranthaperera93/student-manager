@@ -8,17 +8,18 @@ import {
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import { CourseResolver } from './course.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Course } from './entities/course.entity';
-import { User } from './entities/user.entity';
+import { Course } from '../entities/course.entity';
+import { User } from '../entities/user.entity';
 import { UserResolver } from './user.resolver';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserCourseService } from './user-course/user-course.service';
-import { UserCourse } from './entities/user-course.entity';
+import { UserCourse } from '../entities/user-course.entity';
 import { UserCourseResolver } from './user-course/user-course.resolver';
+import { UserService } from './user.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, UserCourse]),
+    TypeOrmModule.forFeature([Course, UserCourse, User]),
     GraphQLModule.forRoot<ApolloFederationDriverConfig>({
       driver: ApolloFederationDriver,
       autoSchemaFile: {
@@ -49,9 +50,16 @@ import { UserCourseResolver } from './user-course/user-course.resolver';
         autoLoadEntities: true,
         logging: true,
       }),
-      inject: [ConfigService]
+      inject: [ConfigService],
     }),
   ],
-  providers: [CourseResolver, CourseService, UserResolver, UserCourseResolver, UserCourseService],
+  providers: [
+    CourseResolver,
+    CourseService,
+    UserResolver,
+    UserCourseResolver,
+    UserCourseService,
+    UserService,
+  ],
 })
 export class CourseModule {}
