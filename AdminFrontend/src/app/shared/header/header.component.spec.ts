@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { HeaderComponent } from './header.component';
 import { of, throwError } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
-import { StudentService } from '../services/student.service';
+import { NotificationService } from '../../services/notification.service';
+import { StudentService } from '../../services/student.service';
 import { FileInfo, UploadsModule } from '@progress/kendo-angular-upload';
 import { LabelModule } from '@progress/kendo-angular-label';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
@@ -11,7 +11,7 @@ import { AvatarModule, LayoutModule } from '@progress/kendo-angular-layout';
 import { NavigationModule } from '@progress/kendo-angular-navigation';
 import { IndicatorsModule } from '@progress/kendo-angular-indicators';
 import { IconsModule } from '@progress/kendo-angular-icons';
-import { JobQueueItem } from '../core/constants';
+import { JobQueueItem } from '../../core/constants';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;

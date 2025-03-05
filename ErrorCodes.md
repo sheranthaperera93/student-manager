@@ -11,3 +11,4 @@
 | User retry bulk upload        | 1010  |
 | Retry job queue failed        | 1011  |
 | Job record not found          | 1012  |
+| Course delete failed          | 1013  |

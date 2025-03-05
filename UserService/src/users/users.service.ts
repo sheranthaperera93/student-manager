@@ -6,10 +6,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
-import { CustomException, DuplicateEntryException } from 'src/core/exception-handlers';
+import {
+  CustomException,
+  DuplicateEntryException,
+} from 'src/core/exception-handlers';
 import { ProducerService } from 'src/kafka/producer/producer.service';
 import { UserInputDTO } from './models/user-input.dto';
 import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
+import { HttpService } from '@nestjs/axios';
+import { lastValueFrom } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -17,15 +23,21 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly kafka: ProducerService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
   ) {}
 
   findAll = async ({
     skip,
     take,
+    name,
+    email,
     dateOfBirth,
   }: {
     skip?: number;
     take?: number;
+    name?: string;
+    email?: string;
     dateOfBirth?: DateOfBirthRangeInput;
   }): Promise<PaginatedUsers> => {
     const query = this.userRepository.createQueryBuilder('user');
@@ -38,6 +50,14 @@ export class UsersService {
       if (dateOfBirth.to) {
         query.andWhere('user.date_of_birth <= :to', { to: dateOfBirth.to });
       }
+    }
+
+    if (name) {
+      query.andWhere('LOWER(user.name) LIKE LOWER(:name)', { name: `%${name}%` });
+    }
+
+    if (email) {
+      query.andWhere('LOWER(user.email) LIKE LOWER(:email)', { email: `%${email}%` });
     }
 
     if (skip !== undefined) {
@@ -65,9 +85,47 @@ export class UsersService {
     try {
       const user = await this.findById(id);
       Object.assign(user, updateUserInput);
+      // Delete the courses attribute if exists
+      delete user['courses'];
+      // Update user details
       await this.userRepository.update({ id: user.id }, user);
+
+      // Update user course relationship (details)
+      if (updateUserInput.courses && updateUserInput.courses.length > 0) {
+        const updateCoursesUrl = `${this.configService.get('COURSES_GRAPHQL_URL')}/updateUserCourses`;
+        const response = await lastValueFrom(
+          this.httpService.post(
+            updateCoursesUrl,
+            {
+              query: `
+              mutation updateUserCourses($userId: Int!, $courseIds: [Int!]!) {
+                updateUserCourses(userId: $userId, courseIds: $courseIds) {
+                  id
+                  userId
+                  courseId
+                }
+              }
+            `,
+              variables: {
+                userId: user.id,
+                courseIds: updateUserInput.courses || [],
+              },
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            },
+          ),
+        );
+        if (response.status !== 200) {
+          throw new Error('Failed to update courses');
+        }
+      }
+
       return 'User updated successfully';
     } catch (error) {
+      Logger.error(error, 'User Service - Update');
       if (error.name === EntityNotFoundError.name) {
         throw new CustomException(
           'Failed to update the user record: User not found in the system.',
@@ -113,8 +171,10 @@ export class UsersService {
       await this.userRepository.save(userRecords);
       return 'Users created successfully';
     } catch (error) {
-      Logger.error(error.message, "Failed to create bulk users");
-      if (error.message.includes('duplicate key value violates unique constraint')) {
+      Logger.error(error.message, 'Failed to create bulk users');
+      if (
+        error.message.includes('duplicate key value violates unique constraint')
+      ) {
         throw new DuplicateEntryException(
           'Duplicate entry error',
           1009,
@@ -139,7 +199,7 @@ export class UsersService {
         filePath: filePath,
         fileName: fileName,
         action: 'upload',
-        files: files.map(file => ({
+        files: files.map((file) => ({
           originalname: file.originalname,
           mimetype: file.mimetype,
           size: file.size,
@@ -178,7 +238,9 @@ export class UsersService {
         zlib: { level: 9 },
       });
 
-      output.on('close', () => resolve({ fileName: zipFileName, filePath: zipFilePath }));
+      output.on('close', () =>
+        resolve({ fileName: zipFileName, filePath: zipFilePath }),
+      );
       archive.on('error', (error) => {
         Logger.error('Failed to zip upload content', error);
         reject(new Error('Failed to zip user upload content'));
@@ -187,7 +249,10 @@ export class UsersService {
       archive.pipe(output);
 
       files.forEach((file) => {
-        const filePath = join(uploadsDir, file.originalname.replace(/\s+/g, '-'));
+        const filePath = join(
+          uploadsDir,
+          file.originalname.replace(/\s+/g, '-'),
+        );
         writeFileSync(filePath, file.buffer);
         archive.file(filePath, { name: file.originalname });
       });

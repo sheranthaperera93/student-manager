@@ -1,14 +1,14 @@
 import { Component } from '@angular/core';
-import { Course } from '../model/course.model';
-import { StudentService } from '../services/student.service';
+import { Course } from '../../model/course.model';
+import { StudentService } from '../../services/student.service';
 
 @Component({
-  selector: 'app-course-list',
+  selector: 'app-student-courses',
   standalone: false,
-  templateUrl: './course-list.component.html',
-  styleUrl: './course-list.component.scss',
+  templateUrl: './student-courses.component.html',
+  styleUrl: './student-courses.component.scss',
 })
-export class CourseListComponent {
+export class StudentCoursesComponent {
   public gridData: Course[] = [];
   public loading: boolean = false;
 
@@ -19,6 +19,7 @@ export class CourseListComponent {
     this.studentService.getCoursesForStudentId(studentId).subscribe({
       next: (result: Course[]) => {
         this.gridData = result;
+        this.loading = false;
       },
       error: (error: any) => {
         console.error('Error fetching course list:', error);

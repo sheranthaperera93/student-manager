@@ -34,6 +34,7 @@
     "@progress/kendo-angular-l10n": "18.0.0",
     "@progress/kendo-angular-label": "18.0.0",
     "@progress/kendo-angular-layout": "18.0.0",
+    "@progress/kendo-angular-listbox": "^18.0.0",
     "@progress/kendo-angular-listview": "^18.0.0",
     "@progress/kendo-angular-navigation": "18.0.0",
     "@progress/kendo-angular-notification": "^18.0.0",

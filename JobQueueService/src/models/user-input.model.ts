@@ -1,8 +1,11 @@
+import { Optional } from '@nestjs/common';
 import { Field, InputType, PartialType } from '@nestjs/graphql';
 import {
+  IsArray,
   IsDateString,
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsString,
   Length,
 } from 'class-validator';
@@ -29,4 +32,10 @@ export class UserInputBase {
 }
 
 @InputType()
-export class UserInputDTO extends PartialType(UserInputBase) {}
+export class UserInputDTO extends PartialType(UserInputBase) {
+  @Field(() => [Number], { nullable: true })
+  @IsArray()
+  @Optional()
+  @IsNumber({}, { each: true })
+  courses?: number[];
+}

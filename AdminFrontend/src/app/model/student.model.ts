@@ -13,4 +13,5 @@ export class UpdateStudent {
   name: string = '';
   date_of_birth: Date = new Date();
   email: string = '';
+  courses: number[] = []
 }

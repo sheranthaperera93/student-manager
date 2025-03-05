@@ -16,8 +16,4 @@ export class Course {
   @Field()
   @Column()
   description: string;
-
-  @Field(() => ID)
-  @Column()
-  userId: number;
 }

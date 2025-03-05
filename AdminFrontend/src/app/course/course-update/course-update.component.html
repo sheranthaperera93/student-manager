@@ -1,0 +1,54 @@
+<form class="k-form k-form-md" [formGroup]="courseEditFrm">
+    <fieldset class="k-form-fieldset">
+      <kendo-formfield>
+        <kendo-label
+          labelCssClass="k-form-label"
+          [for]="name"
+          text="Name"
+        ></kendo-label>
+        <kendo-textbox formControlName="name" #name required></kendo-textbox>
+  
+        <kendo-formerror
+          *ngIf="courseEditFrm.get('name')?.invalid && courseEditFrm.get('name')?.touched"
+        >
+          Name is required.
+        </kendo-formerror>
+      </kendo-formfield>
+  
+      <kendo-formfield>
+        <kendo-label
+          labelCssClass="k-form-label"
+          [for]="description"
+          text="Description"
+        ></kendo-label>
+        <kendo-textbox formControlName="description" #description required></kendo-textbox>
+  
+        <kendo-formerror
+          *ngIf="courseEditFrm.get('description')?.invalid && courseEditFrm.get('description')?.touched"
+        >
+          Valid description is required.
+        </kendo-formerror>
+      </kendo-formfield>
+  
+    </fieldset>
+    <div class="k-form-buttons pull-right">
+      <button
+        type="button"
+        kendoButton
+        class="k-button close-button"
+        (click)="onCancel()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        kendoButton
+        class="k-button submit-button"
+        (click)="onUpdate()"
+        [disabled]="courseEditFrm.invalid"
+      >
+        Update
+      </button>
+    </div>
+  </form>
+  

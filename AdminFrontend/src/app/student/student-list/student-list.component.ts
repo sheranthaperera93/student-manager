@@ -1,22 +1,18 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Student, UpdateStudent } from '../model/student.model';
-import { StudentService } from '../services/student.service';
+import { Student } from '../../model/student.model';
+import { StudentService } from '../../services/student.service';
 import {
-  caretAltDownIcon,
-  caretAltUpIcon,
   pencilIcon,
   SVGIcon,
   trashIcon,
-  arrowRotateCwIcon,
-  eyeIcon,
+  inboxIcon,
 } from '@progress/kendo-svg-icons';
-import { ExportParameters } from '../core/constants';
 import { State } from '@progress/kendo-data-query';
 
-import { debounceTime, Observable, Subscription } from 'rxjs';
+import { debounceTime, Subscription } from 'rxjs';
 import { GridComponent, GridDataResult } from '@progress/kendo-angular-grid';
 import { PageChangeEvent } from '@progress/kendo-angular-pager';
-import { UtilService } from '../services/util.service';
+import { UtilService } from '../../services/util.service';
 import {
   DialogCloseResult,
   DialogRef,
@@ -24,8 +20,9 @@ import {
   DialogService,
 } from '@progress/kendo-angular-dialog';
 import { StudentUpdateComponent } from '../student-update/student-update.component';
-import { NotificationService } from '../services/notification.service';
-import { CourseListComponent } from '../course-list/course-list.component';
+import { NotificationService } from '../../services/notification.service';
+import { StudentCoursesComponent } from '../student-courses/student-courses.component';
+import { StudentSearch } from '../../model/student-search.model';
 
 @Component({
   selector: 'app-student-list',
@@ -36,11 +33,10 @@ import { CourseListComponent } from '../course-list/course-list.component';
 export class StudentListComponent implements OnInit, OnDestroy {
   public editIcon: SVGIcon = pencilIcon;
   public deleteIcon: SVGIcon = trashIcon;
-  public carrotDownIcon: SVGIcon = caretAltDownIcon;
-  public carrotUpIcon: SVGIcon = caretAltUpIcon;
-  public refreshIcon: SVGIcon = arrowRotateCwIcon;
-  public viewIcon: SVGIcon = eyeIcon;
+  public viewCoursesIcon: SVGIcon = inboxIcon;
+
   public showExportPopup: boolean = false;
+  public isUploadDialogVisible = false;
 
   // Paging variables
   public loading: boolean = false;
@@ -48,15 +44,14 @@ export class StudentListComponent implements OnInit, OnDestroy {
     skip: 0,
     take: 10,
   };
+  public searchParams: StudentSearch = new StudentSearch();
 
   gridData: GridDataResult = { data: [], total: 0 };
   @ViewChild('grid') private readonly grid!: GridComponent;
 
+  private fetchListSubscription: Subscription = new Subscription();
   private reloadListSubscription: Subscription = new Subscription();
-  students$!: Observable<GridDataResult>;
   private deleteSubscription: Subscription = new Subscription();
-  private updateSubscription: Subscription = new Subscription();
-  private exportSubscription: Subscription = new Subscription();
 
   constructor(
     public readonly studentService: StudentService,
@@ -67,9 +62,12 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reloadListSubscription =
-      this.studentService.refreshStudentList.subscribe(() => {
-        this.refreshData();
-      });
+      this.studentService.refreshStudentList.subscribe(
+        (payload: StudentSearch) => {
+          this.searchParams = payload;
+          this.refreshData();
+        }
+      );
     this.loadData();
   }
 
@@ -81,9 +79,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.reloadListSubscription.unsubscribe();
-    if (this.updateSubscription) this.updateSubscription.unsubscribe();
+    this.fetchListSubscription.unsubscribe();
     if (this.deleteSubscription) this.deleteSubscription.unsubscribe();
-    if (this.exportSubscription) this.exportSubscription.unsubscribe();
   }
 
   pageChange(event: PageChangeEvent): void {
@@ -97,8 +94,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
   };
 
   loadData() {
-    this.studentService
-      .getStudents(this.pageState)
+    this.fetchListSubscription = this.studentService
+      .getStudents(this.pageState, this.searchParams)
       .subscribe((res: { data: Student[]; total: number }) => {
         this.gridData = {
           data: res.data,
@@ -138,42 +135,17 @@ export class StudentListComponent implements OnInit, OnDestroy {
       title: 'Update Student',
       content: StudentUpdateComponent,
       actions: [],
+      width: '25%',
     });
 
-    // Get update component instance
-    const userInfo = dialogRef.content.instance as StudentUpdateComponent;
-    userInfo.editForm.patchValue({
-      name: student.name,
-      email: student.email,
-      dateOfBirth: new Date(student.date_of_birth), // Convert to Date object
-    });
+    // Call populate data inside the component instance
+    const componentInstance = dialogRef.content
+      .instance as StudentUpdateComponent;
+    componentInstance.populateData(student.id);
 
     dialogRef.result.subscribe((result: DialogResult) => {
       if (!(result instanceof DialogCloseResult)) {
-        const updateData = new UpdateStudent();
-        updateData.name = userInfo.editForm.controls['name'].value;
-        updateData.date_of_birth =
-          userInfo.editForm.controls['dateOfBirth'].value;
-        updateData.email = userInfo.editForm.controls['email'].value;
-
-        this.updateSubscription = this.studentService
-          .updateStudent(student.id, updateData)
-          .subscribe({
-            next: () => {
-              this.notificationService.showNotification(
-                'success',
-                'Student updated successfully'
-              );
-              this.refreshData();
-            },
-            error: (error) => {
-              this.notificationService.showNotification(
-                'error',
-                error.message,
-                { hideAfter: 4000 }
-              );
-            },
-          });
+        this.refreshData();
       }
     });
   };
@@ -220,36 +192,18 @@ export class StudentListComponent implements OnInit, OnDestroy {
     });
   };
 
-  /**
-   * Handles the export action for the student list.
-   * Logs the export parameters and hides the export popup.
-   *
-   * @param parameters - The parameters used for exporting data.
-   */
-  onExportHandler = (parameters: ExportParameters): void => {
-    this.exportSubscription = this.studentService
-      .exportData(parameters)
-      .subscribe(() => {
-        this.notificationService.showNotification(
-          'success',
-          'Export initiated successfully'
-        );
-      });
-    this.showExportPopup = false;
-  };
-
   onViewCoursersHandler = (student: Student) => {
     //This method opens a dialog box which contains the coursers followed by the student
     const dialogRef: DialogRef = this.dialogService.open({
       title: 'Coursers followed by ' + student.name,
-      content: CourseListComponent,
+      content: StudentCoursesComponent,
       actions: [{ text: 'Close', themeColor: 'primary' }],
       width: 600,
       height: 400,
       minWidth: 250,
     });
 
-    const component = dialogRef.content.instance as CourseListComponent;
+    const component = dialogRef.content.instance as StudentCoursesComponent;
     component.fetchCourseList(student.id);
   };
 }

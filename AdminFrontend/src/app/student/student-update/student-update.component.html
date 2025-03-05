@@ -1,0 +1,94 @@
+<form class="k-form k-form-md" [formGroup]="studentEditFrm">
+  <fieldset class="k-form-fieldset">
+    <kendo-formfield>
+      <kendo-label
+        labelCssClass="k-form-label"
+        [for]="name"
+        text="Name"
+      ></kendo-label>
+      <kendo-textbox formControlName="name" #name required></kendo-textbox>
+
+      <kendo-formerror
+        *ngIf="studentEditFrm.get('name')?.invalid && studentEditFrm.get('name')?.touched"
+      >
+        Name is required.
+      </kendo-formerror>
+    </kendo-formfield>
+
+    <kendo-formfield>
+      <kendo-label
+        labelCssClass="k-form-label"
+        [for]="email"
+        text="Email"
+      ></kendo-label>
+      <kendo-textbox formControlName="email" #email required></kendo-textbox>
+
+      <kendo-formerror
+        *ngIf="studentEditFrm.get('email')?.invalid && studentEditFrm.get('email')?.touched"
+      >
+        Valid email is required.
+      </kendo-formerror>
+    </kendo-formfield>
+
+    <kendo-formfield>
+      <kendo-label
+        labelCssClass="k-form-label"
+        [for]="dateOfBirth"
+        text="Date of Birth"
+      ></kendo-label>
+      <kendo-datepicker
+        #dateOfBirth
+        formControlName="dateOfBirth"
+        [min]="dobMin"
+        [max]="dobMax"
+        required
+        format="yyyy-MM-dd"
+      >
+      </kendo-datepicker>
+      <kendo-formerror
+        *ngIf="
+          studentEditFrm.get('dateOfBirth')?.invalid &&
+          studentEditFrm.get('dateOfBirth')?.touched
+        "
+      >
+        Date of Birth is required.
+      </kendo-formerror>
+    </kendo-formfield>
+
+    <kendo-formfield>
+      <kendo-label
+        class="k-display-block"
+        [for]="multiselect"
+        text="Select courses:"
+      >
+      </kendo-label>
+      <kendo-multiselect
+        #multiselect
+        [data]="allCourses"
+        formControlName="courses"
+        textField="name"
+        valueField="id"
+      >
+      </kendo-multiselect>
+    </kendo-formfield>
+  </fieldset>
+  <div class="k-form-buttons pull-right">
+    <button
+      type="button"
+      kendoButton
+      class="k-button close-button"
+      (click)="onCancel()"
+    >
+      Cancel
+    </button>
+    <button
+      type="button"
+      kendoButton
+      class="k-button submit-button"
+      (click)="onUpdate()"
+      [disabled]="studentEditFrm.invalid"
+    >
+      Update
+    </button>
+  </div>
+</form>

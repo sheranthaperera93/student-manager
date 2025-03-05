@@ -1,31 +1,50 @@
-import {
-  Args,
-  Int,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Course } from './entities/course.entity';
-import { User } from './entities/user.entity';
 import { CourseService } from './course.service';
+import { PaginatedCourses } from './models/paginated-courses.model';
+import { CourseInputDTO } from './models/course-input.dto';
+import { Response } from './models/response.model';
 
 @Resolver((of) => Course)
 export class CourseResolver {
   constructor(private readonly courseService: CourseService) {}
 
   @Query((returns) => Course)
-  async course(@Args({ name: 'id', type: () => Int }) id: number) {
-    return await this.courseService.findOne(id);
+  async getCourseById(@Args({ name: 'id', type: () => Int }) id: number) {
+    return await this.courseService.findById(id);
   }
 
-  @Query((returns) => [Course])
-  async courses(): Promise<Course[]> {
-    return await this.courseService.findAll();
+  @Query((returns) => PaginatedCourses)
+  async getCourses(
+    @Args('skip', { type: () => Number, nullable: true }) skip?: number,
+    @Args('take', { type: () => Number, nullable: true }) take?: number,
+  ): Promise<PaginatedCourses> {
+    return await this.courseService.findAll({skip, take});
   }
 
-  @ResolveField((of) => User)
-  user(@Parent() course: Course) {
-    return { __typename: 'User', id: course.userId };
+  @Mutation((returns) => Response)
+  async updateCourse(
+    @Args({ name: 'id', type: () => ID }) id: number,
+    @Args({ name: 'data', type: () => CourseInputDTO })
+    updateCourseInput: CourseInputDTO,
+  ): Promise<Response> {
+    const resp = await this.courseService.update(id, updateCourseInput);
+    let response: Response = {
+      message: resp,
+      data: { updated: true },
+    };
+    return response;
+  }
+
+  @Mutation((returns) => Response)
+  async deleteCourse(
+    @Args({ name: 'id', type: () => ID }) id: number,
+  ): Promise<Response> {
+    const resp = await this.courseService.delete(id);
+    let response: Response = {
+      message: resp,
+      data: { deleted: true },
+    };
+    return response;
   }
 }

@@ -4,7 +4,7 @@
     <kendo-label
       class="k-display-block age-range-label"
       [for]="ageRangeSelector"
-      text="Age Range"
+      [text]="'Age Range: ' + ageRange[0] + ' - ' + ageRange[1]" 
     ></kendo-label>
     <kendo-rangeslider
       #ageRangeSelector
@@ -20,7 +20,6 @@
         decrement="Left"
       ></kendo-rangeslider-messages>
     </kendo-rangeslider>
-    <div class="age-range-value">From {{ ageRange[0] }} to {{ageRange[1]}}</div>
   </div>
   <div class="actions">
     <button kendoButton (click)="onExportHandler()">Export</button>

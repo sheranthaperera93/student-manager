@@ -1,0 +1,40 @@
+<div class="card">
+  <div class="card-body">
+    <kendo-grid
+      #grid
+      [data]="gridData"
+      [loading]="loading"
+      [skip]="pageState.skip"
+      [pageSize]="pageState.take"
+      [rowHeight]="36"
+      [height]="350"
+      scrollable="virtual"
+    >
+      <kendo-grid-column field="id" title="ID" [width]="100">
+      </kendo-grid-column>
+      <kendo-grid-column field="name" title="Name"> </kendo-grid-column>
+      <kendo-grid-column field="description" title="Description"> </kendo-grid-column>
+      <kendo-grid-column title="Actions" [width]="130">
+        <ng-template kendoGridCellTemplate let-dataItem>
+          <button
+            kendoButton
+            fillMode="flat"
+            (click)="onEditStudentHandler(dataItem)"
+          >
+            <kendo-svgicon [icon]="editIcon"></kendo-svgicon>
+          </button>
+          <button
+            kendoButton
+            fillMode="flat"
+            (click)="onDeleteStudentHandler(dataItem)"
+          >
+            <kendo-svgicon [icon]="deleteIcon"></kendo-svgicon>
+          </button>
+        </ng-template>
+      </kendo-grid-column>
+    </kendo-grid>
+  </div>
+
+  <!-- Dialog Container -->
+  <div kendoDialogContainer></div>
+</div>

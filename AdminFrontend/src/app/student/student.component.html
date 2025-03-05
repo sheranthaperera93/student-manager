@@ -1,0 +1,63 @@
+<div class="card">
+  <div class="card-header">
+    <h3>Student List</h3>
+  </div>
+  <div class="card-body">
+    <div class="list-actions">
+      <button kendoButton (click)="openUploadDialog()">
+        <kendo-svgicon [icon]="uploadIcon"></kendo-svgicon>
+        Import
+      </button>
+      <button
+        kendoButton
+        [svgIcon]="!showExportPopup ? carrotDownIcon : carrotUpIcon"
+        (click)="showExportPopup = !showExportPopup"
+        #exportAnchor
+      >
+        Export
+      </button>
+    </div>
+    <app-student-search></app-student-search>
+    <app-student-list></app-student-list>
+  </div>
+
+  <!-- Dialog Container -->
+  <div kendoDialogContainer></div>
+
+  <!-- Export Popup -->
+  <kendo-popup
+    [anchor]="exportAnchor.element"
+    (anchorViewportLeave)="showExportPopup = false"
+    [popupAlign]="{ horizontal: 'right', vertical: 'top' }"
+    [anchorAlign]="{ horizontal: 'right', vertical: 'bottom' }"
+    [margin]="{ horizontal: 10, vertical: 10 }"
+    *ngIf="showExportPopup"
+  >
+    <app-export-popup (export)="onExportHandler($event)"></app-export-popup>
+  </kendo-popup>
+
+  <!-- Upload Dialog -->
+  <kendo-dialog
+    title="Upload File"
+    *ngIf="isUploadDialogVisible"
+    (close)="closeUploadDialog()"
+    [width]="600"
+  >
+    <app-upload
+      (closeDialog)="closeUploadDialog()"
+      (triggerUpload)="uploadFile($event)"
+    ></app-upload>
+  </kendo-dialog>
+
+  <!-- Export Popup -->
+  <kendo-popup
+    [anchor]="exportAnchor.element"
+    (anchorViewportLeave)="showExportPopup = false"
+    [popupAlign]="{ horizontal: 'right', vertical: 'top' }"
+    [anchorAlign]="{ horizontal: 'right', vertical: 'bottom' }"
+    [margin]="{ horizontal: 10, vertical: 10 }"
+    *ngIf="showExportPopup"
+  >
+    <app-export-popup (export)="onExportHandler($event)"></app-export-popup>
+  </kendo-popup>
+</div>
