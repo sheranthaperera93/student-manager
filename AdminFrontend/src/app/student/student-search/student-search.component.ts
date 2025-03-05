@@ -38,5 +38,13 @@ export class StudentSearchComponent {
     this.studentService.refreshStudentList.next(payload);
   };
 
-  handleOnClear = () => {};
+  handleOnClear = () => {
+    this.studentSearchFrm.patchValue({
+      name: '',
+      email: '',
+      dateOfBirthStart: dayjs().subtract(50, 'year').toDate(),
+      dateOfBirthEnd: new Date(),
+    });
+    this.handleOnSearch();
+  };
 }
