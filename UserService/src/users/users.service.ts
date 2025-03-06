@@ -4,14 +4,14 @@ import { join } from 'path';
 import * as archiver from 'archiver';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { EntityNotFoundError, Repository, In } from 'typeorm';
 import { PaginatedUsers } from './models/paginated-users.model';
 import {
   CustomException,
   DuplicateEntryException,
 } from 'src/core/exception-handlers';
 import { ProducerService } from 'src/kafka/producer/producer.service';
-import { UserInputDTO } from './models/user-input.dto';
+import { UserInputBase, UserInputDTO } from './models/user-input.dto';
 import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
@@ -53,11 +53,15 @@ export class UsersService {
     }
 
     if (name) {
-      query.andWhere('LOWER(user.name) LIKE LOWER(:name)', { name: `%${name}%` });
+      query.andWhere('LOWER(user.name) LIKE LOWER(:name)', {
+        name: `%${name}%`,
+      });
     }
 
     if (email) {
-      query.andWhere('LOWER(user.email) LIKE LOWER(:email)', { email: `%${email}%` });
+      query.andWhere('LOWER(user.email) LIKE LOWER(:email)', {
+        email: `%${email}%`,
+      });
     }
 
     if (skip !== undefined) {
@@ -76,6 +80,10 @@ export class UsersService {
 
   findById = async (id: number): Promise<User> => {
     return this.userRepository.findOneByOrFail({ id });
+  };
+
+  findByIds = async (ids: number[]): Promise<User[]> => {
+    return await this.userRepository.find({ where: { id: In(ids) } });
   };
 
   update = async (
@@ -168,7 +176,12 @@ export class UsersService {
 
   createBulk = async (userRecords: UserInputDTO[]): Promise<string> => {
     try {
-      await this.userRepository.save(userRecords);
+      const payload: UserInputBase[] = userRecords.map((record) => ({
+        name: record.name!,
+        email: record.email!,
+        date_of_birth: record.date_of_birth!,
+      }));
+      await this.userRepository.save(payload);
       return 'Users created successfully';
     } catch (error) {
       Logger.error(error.message, 'Failed to create bulk users');

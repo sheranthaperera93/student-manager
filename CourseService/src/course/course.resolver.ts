@@ -10,7 +10,7 @@ export class CourseResolver {
   constructor(private readonly courseService: CourseService) {}
 
   @Query((returns) => Course)
-  async getCourseById(@Args({ name: 'id', type: () => Int }) id: number) {
+  async getCourse(@Args({ name: 'id', type: () => Int }) id: number) {
     return await this.courseService.findById(id);
   }
 

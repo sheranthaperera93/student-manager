@@ -33,7 +33,7 @@ describe('CourseResolver', () => {
   });
 
   it('should return a course by id', async () => {
-    const result = await resolver.getCourseById(1);
+    const result = await resolver.getCourse(1);
     expect(result).toEqual({ id: 1, name: 'Test Course' });
     expect(courseService.findById).toHaveBeenCalledWith(1);
   });
