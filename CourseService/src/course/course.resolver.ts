@@ -1,4 +1,12 @@
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  ID,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+  ResolveReference,
+} from '@nestjs/graphql';
 import { Course } from '../entities/course.entity';
 import { CourseService } from './course.service';
 import { PaginatedCourses } from './models/paginated-courses.model';
@@ -19,7 +27,7 @@ export class CourseResolver {
     @Args('skip', { type: () => Number, nullable: true }) skip?: number,
     @Args('take', { type: () => Number, nullable: true }) take?: number,
   ): Promise<PaginatedCourses> {
-    return await this.courseService.findAll({skip, take});
+    return await this.courseService.findAll({ skip, take });
   }
 
   @Mutation((returns) => Response)
@@ -46,5 +54,10 @@ export class CourseResolver {
       data: { deleted: true },
     };
     return response;
+  }
+
+  @ResolveReference()
+  resolveReference(ref: { id: number }): any {
+    return { __typename: 'Course', id: ref.id };
   }
 }
