@@ -5,7 +5,7 @@ import { App } from 'supertest/types';
 import { mockCourseService } from './mocks';
 import { CourseModule } from 'src/course/course.module';
 import { CourseService } from 'src/course/course.service';
-import { Course } from 'src/course/entities/course.entity';
+import { Course } from 'src/entities/course.entity';
 
 describe('CourseService (e2e)', () => {
   let app: INestApplication<App>;
@@ -43,7 +43,6 @@ describe('CourseService (e2e)', () => {
           (course: Course) => ({
             ...course,
             id: course.id.toString(),
-            userId: course.userId.toString(),
           }),
         );
         expect(res.body.data.courses).toEqual(transformedCourses);
