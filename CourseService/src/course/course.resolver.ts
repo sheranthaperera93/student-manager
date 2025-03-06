@@ -56,8 +56,4 @@ export class CourseResolver {
     return response;
   }
 
-  @ResolveReference()
-  resolveReference(ref: { id: number }): any {
-    return { __typename: 'Course', id: ref.id };
-  }
 }
