@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CourseResolver } from './course.resolver';
 import { CourseService } from './course.service';
-import { Course } from '../entities/course.entity';
 
 describe('CourseResolver', () => {
   let resolver: CourseResolver;
@@ -34,25 +33,15 @@ describe('CourseResolver', () => {
   });
 
   it('should return a course by id', async () => {
-    const result = await resolver.course(1);
+    const result = await resolver.getCourseById(1);
     expect(result).toEqual({ id: 1, name: 'Test Course' });
-    expect(courseService.findOne).toHaveBeenCalledWith(1);
+    expect(courseService.findById).toHaveBeenCalledWith(1);
   });
 
   it('should return an array of courses', async () => {
-    const result = await resolver.courses();
+    const result = await resolver.getCourses();
     expect(result).toEqual([{ id: 1, name: 'Test Course' }]);
     expect(courseService.findAll).toHaveBeenCalled();
   });
 
-  it('should return a user for a course', () => {
-    const course: Course = {
-      id: 1,
-      name: 'Mastering React Native',
-      description: 'Mastering react native knowledge',
-      userId: 1,
-    };
-    const result = resolver.user(course);
-    expect(result).toEqual({ __typename: 'User', id: 1 });
-  });
 });

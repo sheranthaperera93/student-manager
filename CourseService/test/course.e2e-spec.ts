@@ -43,7 +43,6 @@ describe('CourseService (e2e)', () => {
           (course: Course) => ({
             ...course,
             id: course.id.toString(),
-            userId: course.userId.toString(),
           }),
         );
         expect(res.body.data.courses).toEqual(transformedCourses);
