@@ -1,5 +1,5 @@
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Course } from './entities/course.entity';
+import { Course } from '../entities/course.entity';
 import { CourseService } from './course.service';
 import { PaginatedCourses } from './models/paginated-courses.model';
 import { CourseInputDTO } from './models/course-input.dto';

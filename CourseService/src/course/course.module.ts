@@ -8,12 +8,12 @@ import {
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import { CourseResolver } from './course.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Course } from './entities/course.entity';
-import { User } from './entities/user.entity';
+import { Course } from '../entities/course.entity';
+import { User } from '../entities/user.entity';
 import { UserResolver } from './user.resolver';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserCourseService } from './user-course/user-course.service';
-import { UserCourse } from './entities/user-course.entity';
+import { UserCourse } from '../entities/user-course.entity';
 import { UserCourseResolver } from './user-course/user-course.resolver';
 
 @Module({

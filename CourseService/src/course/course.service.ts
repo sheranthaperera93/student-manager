@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
-import { Course } from './entities/course.entity';
+import { Course } from '../entities/course.entity';
 import { CustomException } from 'src/core/custom-exception';
 import { PaginatedCourses } from './models/paginated-courses.model';
 import { CourseInputDTO } from './models/course-input.dto';
