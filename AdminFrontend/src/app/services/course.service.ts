@@ -5,6 +5,7 @@ import { State } from '@progress/kendo-data-query';
 import { GridDataResult } from '@progress/kendo-angular-grid';
 import { UpdateCourse } from '../model/course.model';
 import { Response } from '../model/response.model';
+import { Student } from '../model/student.model';
 
 @Injectable({
   providedIn: 'root',
@@ -42,6 +43,32 @@ export class CourseService {
             }
         )
       );
+  };
+
+  getStudentsForCourse = (courseId: number): Observable<Student[]> => {
+    return this.apollo
+      .watchQuery({
+        query: gql`
+          query getCourseById($id: Int!) {
+            getCourse(id: $id) {
+              id
+              name
+              description
+              users {
+                id
+                name
+                email
+                date_of_birth
+              }
+            }
+          }
+        `,
+        variables: {
+          id: parseInt(courseId.toString()),
+        },
+        fetchPolicy: 'cache-and-network',
+      })
+      .valueChanges.pipe(map((result: any) => result.data.getCourse.users));
   };
 
   updateCourse = (id: number, data: UpdateCourse): Observable<Response> => {

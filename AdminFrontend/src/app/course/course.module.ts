@@ -7,9 +7,10 @@ import { CourseListComponent } from './course-list/course-list.component';
 import { CourseUpdateComponent } from './course-update/course-update.component';
 import { SharedModule } from '../shared/shared.module';
 import { ReactiveFormsModule } from '@angular/forms';
+import { CourseStudentsComponent } from './course-students/course-students.component';
 
 @NgModule({
-  declarations: [CourseListComponent, CourseComponent, CourseUpdateComponent],
+  declarations: [CourseListComponent, CourseComponent, CourseUpdateComponent, CourseStudentsComponent],
   imports: [CourseRoutingModule, CommonModule, KendoUIModule, SharedModule, ReactiveFormsModule],
 })
 export class CourseModule {}

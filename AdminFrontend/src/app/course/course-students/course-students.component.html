@@ -1,0 +1,10 @@
+<kendo-grid [data]="gridData" [loading]="loading">
+  <kendo-grid-column field="id" title="ID" [width]="80"> </kendo-grid-column>
+  <kendo-grid-column field="name" title="Name"> </kendo-grid-column>
+  <kendo-grid-column field="email" title="Email"> </kendo-grid-column>
+  <kendo-grid-column field="date_of_birth" title="Date of Birth">
+    <ng-template kendoGridCellTemplate let-dataItem>
+      {{ dataItem.date_of_birth | date : "dd/MM/yyyy" }}
+    </ng-template>
+  </kendo-grid-column>
+</kendo-grid>

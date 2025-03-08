@@ -5,7 +5,7 @@ import { State } from '@progress/kendo-data-query';
 import { debounceTime, Subscription } from 'rxjs';
 import { PageChangeEvent } from '@progress/kendo-angular-pager';
 import { Course } from '../../model/course.model';
-import { pencilIcon, SVGIcon, trashIcon } from '@progress/kendo-svg-icons';
+import { inboxIcon, pencilIcon, SVGIcon, trashIcon } from '@progress/kendo-svg-icons';
 import {
   DialogCloseResult,
   DialogRef,
@@ -14,6 +14,7 @@ import {
 } from '@progress/kendo-angular-dialog';
 import { CourseUpdateComponent } from '../course-update/course-update.component';
 import { NotificationService } from '../../services/notification.service';
+import { CourseStudentsComponent } from '../course-students/course-students.component';
 
 @Component({
   selector: 'app-course-list',
@@ -30,6 +31,7 @@ export class CourseListComponent implements OnInit, AfterViewInit {
   };
   public editIcon: SVGIcon = pencilIcon;
   public deleteIcon: SVGIcon = trashIcon;
+  public viewCoursesIcon: SVGIcon = inboxIcon;
   private fetchCoursesSubscription: Subscription = new Subscription();
   private deleteSubscription: Subscription = new Subscription();
 
@@ -104,6 +106,20 @@ export class CourseListComponent implements OnInit, AfterViewInit {
         this.refreshData();
       }
     });
+  };
+
+  onViewStudentsHandler = async (course: Course) => {
+    const dialogRef: DialogRef = this.dialogService.open({
+      title: 'Coursers follow ' + course.name,
+      content: CourseStudentsComponent,
+      actions: [{ text: 'Close', themeColor: 'primary' }],
+      width: 600,
+      height: 400,
+      minWidth: 250,
+    });
+
+    const component = dialogRef.content.instance as CourseStudentsComponent;
+    component.fetchStudentList(course.id);
   };
 
   onDeleteStudentHandler = async (course: Course) => {

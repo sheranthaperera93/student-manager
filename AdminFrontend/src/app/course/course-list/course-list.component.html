@@ -19,6 +19,13 @@
           <button
             kendoButton
             fillMode="flat"
+            (click)="onViewStudentsHandler(dataItem)"
+          >
+            <kendo-svgicon [icon]="viewCoursesIcon"></kendo-svgicon>
+          </button>
+          <button
+            kendoButton
+            fillMode="flat"
             (click)="onEditStudentHandler(dataItem)"
           >
             <kendo-svgicon [icon]="editIcon"></kendo-svgicon>
