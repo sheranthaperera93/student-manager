@@ -27,11 +27,11 @@ export class JobQueueService {
     @InjectQueue('bull-queue') private readonly jobQueue: Queue,
   ) {}
 
-  createUploadJob = async (
+  async createUploadJob(
     filePath: string,
     fileName: string,
     type: JOB_TYPE,
-  ): Promise<JobQueue> => {
+  ): Promise<JobQueue> {
     let jobQueue = new JobQueue();
     jobQueue.createdDate = new Date();
     jobQueue.status = JOB_QUEUE_STATUS.PENDING;
@@ -43,7 +43,7 @@ export class JobQueueService {
     jobQueue.jobData = JSON.stringify(tmpJobData);
     Logger.log('Inserting job queue item to DB');
     return await this.jobQueueRepository.save(jobQueue);
-  };
+  }
 
   async updateJobStatus(
     jobId: number,
@@ -53,11 +53,14 @@ export class JobQueueService {
     const job = await this.jobQueueRepository
       .findOneByOrFail({ id: jobId })
       .catch((error) => {
-        Logger.error('Failed to update job status. Invalid JOB ID:', {
-          jobId,
-          status,
-          error,
-        });
+        Logger.error(
+          'Failed to update job status. Invalid JOB ID:' +
+            {
+              jobId,
+              status,
+              error,
+            },
+        );
         throw new NotFoundException('No Job Found for ID: ' + job.id);
       });
     if (jobInfoPayload) {
@@ -67,7 +70,7 @@ export class JobQueueService {
       job.jobCompleteDate = new Date();
     }
     job.status = status;
-    Logger.log('Updating job status', { job });
+    Logger.log('Updating job status : ' + { job });
     await this.jobQueueRepository.update({ id: job.id }, job);
   }
 
@@ -85,9 +88,12 @@ export class JobQueueService {
         id: jobId,
       });
       if (jobItem.status === JOB_QUEUE_STATUS.SUCCESS) {
-        Logger.error('Job entry already completed', {
-          jobId,
-        });
+        Logger.error(
+          'Job entry already completed : ' +
+            {
+              jobId,
+            },
+        );
         throw new Error('Job entry already completed');
       }
       Logger.log('Adding retry job to bull queue');
@@ -122,7 +128,7 @@ export class JobQueueService {
     }
   }
 
-  createExportJob = async (age: string, type: JOB_TYPE): Promise<JobQueue> => {
+  async createExportJob(age: string, type: JOB_TYPE): Promise<JobQueue> {
     let jobQueue = new JobQueue();
     jobQueue.createdDate = new Date();
     jobQueue.status = JOB_QUEUE_STATUS.PENDING;
@@ -135,7 +141,7 @@ export class JobQueueService {
     jobQueue.jobData = JSON.stringify(tmpJobData);
     Logger.log('Inserting job queue item to DB');
     return await this.jobQueueRepository.save(jobQueue);
-  };
+  }
 
   getFile(fileName: string): string {
     const filePath = join(__dirname, 'uploads', fileName);
@@ -145,13 +151,15 @@ export class JobQueueService {
     return filePath;
   }
 
-  fetchExport = async (id: number): Promise<string> => {
+  async fetchExport(id: number): Promise<string> {
     const jobItem = await this.jobQueueRepository
       .findOneByOrFail({ id })
       .catch((error) => {
         Logger.error(
-          'Failed to fetch export job. Job not found. Job ID: ' + id,
-          error,
+          'Failed to fetch export job. Job not found. Job ID: ' +
+            id +
+            ' error: ' +
+            error,
         );
         throw new CustomException(
           'No Job Found for ID: ' + id,
@@ -161,5 +169,5 @@ export class JobQueueService {
         );
       });
     return JSON.parse(jobItem.jobData).fileName;
-  };
+  }
 }

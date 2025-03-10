@@ -17,7 +17,7 @@ export class EventsConsumerService implements OnModuleInit {
       { topics: ['notifications'], fromBeginning: true },
       {
         eachMessage: async ({ topic, partition, message }) => {
-          Logger.log('Kafka message received', {
+          Logger.log('Kafka message received : ' + {
             source: this.groupId,
             message: message.value?.toString(),
             partition: partition.toString(),

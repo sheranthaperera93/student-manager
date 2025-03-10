@@ -57,21 +57,21 @@ export class FileExportService {
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
       if (error.name === NotFoundException.name) {
-        Logger.error('Failed to fetch user records', error);
+        Logger.error('Failed to fetch user records : ' + error);
       } else {
-        Logger.error('Error while handling user export', error);
+        Logger.error('Error while handling user export : ' + error);
       }
     }
   }
 
-  fetchFilteredUserRecords = async (params: {
+  async fetchFilteredUserRecords(params: {
     dateOfBirth: { from: string; to: string };
-  }): Promise<User[]> => {
+  }): Promise<User[]> {
     try {
       Logger.log('Fetching filtered user records');
       Logger.log(
-        'FEDERATION_GATEWAY_URL',
-        this.configService.get('FEDERATION_GATEWAY_URL'),
+        'FEDERATION_GATEWAY_URL : ' +
+          this.configService.get('FEDERATION_GATEWAY_URL'),
       );
       Logger.log('params', params);
       const response = await axios.post(
@@ -99,10 +99,10 @@ export class FileExportService {
       );
       return response.data.data.getUsers.items;
     } catch (error) {
-      Logger.error('Error fetching filtered user records: ', error);
+      Logger.error('Error fetching filtered user records: ' + error);
       throw new Error('Failed to fetch filtered user records');
     }
-  };
+  }
 
   async prepareDataSet(
     records: User[],
@@ -144,15 +144,15 @@ export class FileExportService {
       Logger.log(`File saved to ${filePath}`);
       return { fileName, filePath };
     } catch (error) {
-      Logger.error('Error while preparing data set for export', error);
+      Logger.error('Error while preparing data set for export : ' + error);
       throw new Error('Error while preparing data set for export');
     }
   }
 
-  notifyJobUpdate = async (
+  async notifyJobUpdate(
     jobInfo: JobQueue,
     status: JOB_QUEUE_STATUS,
-  ): Promise<void> => {
+  ): Promise<void> {
     const payload = {
       job: jobInfo,
       status: status,
@@ -178,5 +178,5 @@ export class FileExportService {
         },
       ],
     });
-  };
+  }
 }

@@ -1,5 +1,5 @@
 import { Processor, Process, InjectQueue } from '@nestjs/bull';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Job, Queue } from 'bull';
 import { JOB_TYPES, JobItem } from 'src/core/constants';
 import { FileExportService } from 'src/file-processing/file-export/file-export.service';
@@ -16,19 +16,19 @@ export class QueueProcessor {
 
   @Process(JOB_TYPES.FILE_UPLOAD)
   async handleUploadJob(job: Job<JobItem>) {
-    console.log('Processing Bull JS upload job:', job.data);
+    Logger.log('Processing Bull JS upload job:' + JSON.stringify(job.data));
     this.fileUploadService.handleFileUpload(job.data.message);
   }
 
   @Process(JOB_TYPES.FILE_UPLOAD_RETRY)
   async handleReTryJob(job: Job<JobItem>) {
-    console.log('Processing Bull JS retry job:', job.data);
+    Logger.log('Processing Bull JS retry job: ' + JSON.stringify(job.data));
     this.fileUploadService.handleRetryJobQueueItem(job.data.message);
   }
 
   @Process(JOB_TYPES.FILE_EXPORT)
   async handleExportJob(job: Job<JobItem>) {
-    console.log('Processing Bull JS export job:', job.data);
+    Logger.log('Processing Bull JS export job:' + JSON.stringify(job.data));
     this.fileExportService.handleUserExport(job.data.message);
   }
 }

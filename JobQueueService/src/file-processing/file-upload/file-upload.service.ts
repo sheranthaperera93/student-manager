@@ -29,7 +29,7 @@ export class FileUploadService {
     private readonly configService: ConfigService,
   ) {}
 
-  handleFileUpload = async (message: string) => {
+  async handleFileUpload(message: string) {
     const { fileName, filePath } = JSON.parse(message);
     const jobItem = await this.jobQueueService.createUploadJob(
       filePath,
@@ -53,12 +53,12 @@ export class FileUploadService {
       await this.insertBulkRecords(records);
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.SUCCESS);
     } catch (error) {
-      Logger.error('Error processing user bulk upload: ', error);
+      Logger.error('Error processing user bulk upload: ' + error);
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.FAILED);
     }
-  };
+  }
 
-  handleRetryJobQueueItem = async (message: string) => {
+  async handleRetryJobQueueItem(message: string) {
     const { jobId } = JSON.parse(message);
     try {
       const jobItem = await this.jobQueueRepository.findOneByOrFail({
@@ -86,19 +86,19 @@ export class FileUploadService {
       });
       await this.notifyJobUpdate(jobItem, JOB_QUEUE_STATUS.FAILED);
       if (error.name === NotFoundException.name) {
-        Logger.error('Failed to find job item', {
+        Logger.error('Failed to find job item' + {
           jobId,
           error,
         });
       }
-      Logger.error('Error processing user retry bulk upload: ', {
+      Logger.error('Error processing user retry bulk upload: ' + {
         jobId,
         error,
       });
     }
-  };
+  }
 
-  insertBulkRecords = async (records: UserInputDTO[]) => {
+  async insertBulkRecords(records: UserInputDTO[]) {
     try {
       const response = await axios.post(
         this.configService.get('FEDERATION_GATEWAY_URL')!,
@@ -123,7 +123,7 @@ export class FileUploadService {
       }
       return response.data.data.bulkCreate.message;
     } catch (error) {
-      Logger.error('Error inserting bulk records: ', error);
+      Logger.error('Error inserting bulk records: ' + error);
       throw new CustomException(
         'Error while inserting bulk records',
         1006,
@@ -131,7 +131,7 @@ export class FileUploadService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  };
+  }
 
   /**
    * Extracts content from an Excel file within a zip archive.
@@ -145,7 +145,7 @@ export class FileUploadService {
    * It then maps the JSON data to an array of UserInputDTO objects.
    * Each UserInputDTO object contains the name, email, and date of birth extracted from the Excel file.
    */
-  extractExcelContent = async (filePath: string): Promise<Array<UserInputDTO>> => {
+  async extractExcelContent(filePath: string): Promise<Array<UserInputDTO>> {
     const records: UserInputDTO[] = [];
     try {
       const zip = fs.createReadStream(filePath).pipe(unzipper.Parse({ forceStream: true }));
@@ -176,7 +176,7 @@ export class FileUploadService {
       }
       return records;
     } catch (error) {
-      Logger.error('Failed to extract excel file content from zip', error.message);
+      Logger.error('Failed to extract excel file content from zip : ' + error.message);
       throw new Error('Failed to extract excel file content from zip');
     }
   }
@@ -200,10 +200,10 @@ export class FileUploadService {
    * @param {JobQueue} jobInfo - Information about the job queue.
    * @returns {Promise<void>} A promise that resolves when the data has been sent.
    */
-  notifyJobUpdate = async (
+  async notifyJobUpdate(
     jobInfo: JobQueue,
     status: JOB_QUEUE_STATUS,
-  ): Promise<void> => {
+  ): Promise<void> {
     const payload = {
       job: jobInfo,
       status: status,
@@ -225,5 +225,5 @@ export class FileUploadService {
         },
       ],
     });
-  };
+  }
 }

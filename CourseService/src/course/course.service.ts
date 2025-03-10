@@ -40,17 +40,14 @@ export class CourseService {
     return { items, total };
   }
 
-  async update(
-    id: number,
-    updateUserInput: CourseInputDTO,
-  ): Promise<string> {
+  async update(id: number, updateUserInput: CourseInputDTO): Promise<string> {
     try {
       const user = await this.findById(id);
       Object.assign(user, updateUserInput);
       await this.courseRepository.update({ id: user.id }, user);
       return 'Course updated successfully';
     } catch (error) {
-      Logger.error(error, 'Course Service - Update');
+      Logger.error('Failed to update course : ' + error);
       if (error.name === EntityNotFoundError.name) {
         throw new CustomException(
           'Failed to update the course record: Course not found in the system.',

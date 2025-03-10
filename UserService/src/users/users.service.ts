@@ -252,7 +252,7 @@ export class UsersService {
         resolve({ fileName: zipFileName, filePath: zipFilePath }),
       );
       archive.on('error', (error) => {
-        Logger.error('Failed to zip upload content', error);
+        Logger.error('Failed to zip upload content : ' + error);
         reject(new Error('Failed to zip user upload content'));
       });
 
