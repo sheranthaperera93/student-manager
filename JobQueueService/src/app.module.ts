@@ -4,12 +4,36 @@ import { FileProcessingModule } from './file-processing/file-processing.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JobQueueModule } from './job-queue/job-queue.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
+import {
+  ApolloFederationDriver,
+  ApolloFederationDriverConfig,
+} from '@nestjs/apollo';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Makes the config globally available
       envFilePath: '.env', // Path to your environment file
+    }),
+    GraphQLModule.forRoot<ApolloFederationDriverConfig>({
+      driver: ApolloFederationDriver,
+      autoSchemaFile: {
+        federation: 2,
+        path: './src/job-queue-schema.gql',
+      },
+      plugins: [ApolloServerPluginInlineTrace()],
+    }),
+    BullModule.forRootAsync({
+      useFactory: (configService) => ({
+        redis: {
+          host: configService.get('REDIS_HOST'), // Redis server host
+          port: configService.get('REDIS_PORT'), // Redis server port
+        },
+      }),
+      inject: [ConfigService]
     }),
     TypeOrmModule.forRootAsync({
       useFactory: (configService) => ({
