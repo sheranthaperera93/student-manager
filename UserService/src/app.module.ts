@@ -1,8 +1,15 @@
 import { Module } from '@nestjs/common';
+import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
+import {
+  ApolloFederationDriver,
+  ApolloFederationDriverConfig,
+} from '@nestjs/apollo';
+import { GraphQLModule } from '@nestjs/graphql';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { KafkaModule } from './kafka/kafka.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Course } from './users/entities/course.entity';
 
 @Module({
   imports: [
@@ -26,6 +33,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         logging: true,
       }),
       inject: [ConfigService]
+    }),
+    GraphQLModule.forRoot<ApolloFederationDriverConfig>({
+      driver: ApolloFederationDriver,
+      autoSchemaFile: {
+        federation: 2,
+        path: './src/user-schema.gql',
+      },
+      plugins: [ApolloServerPluginInlineTrace()],
+      buildSchemaOptions: {
+        orphanedTypes: [Course],
+      },
     }),
     UsersModule,
     KafkaModule,
