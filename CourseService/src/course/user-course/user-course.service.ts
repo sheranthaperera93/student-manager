@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserCourse } from '../../entities/user-course.entity';
+import { UserCourse } from '../entities/user-course.entity';
 import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
@@ -11,18 +11,18 @@ export class UserCourseService {
     private readonly dataSource: DataSource,
   ) {}
 
-  findByUserId = async (userId: number): Promise<UserCourse[]> => {
+  async findByUserId(userId: number): Promise<UserCourse[]> {
     return await this.userCourseRepository.findBy({ userId });
-  };
+  }
 
-  findByCourseId = async (courseId: number): Promise<UserCourse[]> => {
+  async findByCourseId(courseId: number): Promise<UserCourse[]> {
     return await this.userCourseRepository.findBy({ courseId });
-  };
+  }
 
-  updateUserCourses = async (
+  async updateUserCourses(
     userId: number,
     userCourses: number[],
-  ): Promise<UserCourse[]> => {
+  ): Promise<UserCourse[]> {
     const userCoursesData = userCourses.map((uc: number) => ({
       userId,
       courseId: uc,
@@ -30,6 +30,6 @@ export class UserCourseService {
     return await this.dataSource.transaction(async (manager) => {
       await manager.delete(UserCourse, { userId });
       return await manager.save(UserCourse, userCoursesData);
-    })
-  };
+    });
+  }
 }

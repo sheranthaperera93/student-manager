@@ -1,7 +1,7 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
-import { Course } from '../entities/course.entity';
+import { Course } from './entities/course.entity';
 import { CustomException } from 'src/core/custom-exception';
 import { PaginatedCourses } from './models/paginated-courses.model';
 import { CourseInputDTO } from './models/course-input.dto';
@@ -13,21 +13,21 @@ export class CourseService {
     private readonly courseRepository: Repository<Course>,
   ) {}
 
-  findByIds = async (ids: number[]): Promise<Course[]> => {
+  async findByIds(ids: number[]): Promise<Course[]> {
     return await this.courseRepository.find({ where: { id: In(ids) } });
-  };
+  }
 
-  findById = async (id: number): Promise<Course> => {
+  async findById(id: number): Promise<Course> {
     return this.courseRepository.findOneByOrFail({ id });
-  };
+  }
 
-  findAll = async ({
+  async findAll({
     skip,
     take,
   }: {
     skip?: number;
     take?: number;
-  }): Promise<PaginatedCourses> => {
+  }): Promise<PaginatedCourses> {
     const query = this.courseRepository.createQueryBuilder('course');
     if (skip !== undefined) {
       query.skip(skip);
@@ -38,12 +38,12 @@ export class CourseService {
     query.orderBy('course.id', 'ASC');
     const [items, total] = await query.getManyAndCount();
     return { items, total };
-  };
+  }
 
-  update = async (
+  async update(
     id: number,
     updateUserInput: CourseInputDTO,
-  ): Promise<string> => {
+  ): Promise<string> {
     try {
       const user = await this.findById(id);
       Object.assign(user, updateUserInput);
@@ -66,9 +66,9 @@ export class CourseService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  };
+  }
 
-  delete = async (id: number): Promise<string> => {
+  async delete(id: number): Promise<string> {
     try {
       await this.findById(id);
       await this.courseRepository.delete({ id });
@@ -97,5 +97,5 @@ export class CourseService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  };
+  }
 }

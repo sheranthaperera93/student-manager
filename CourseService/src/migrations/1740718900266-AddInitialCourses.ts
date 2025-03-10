@@ -1,5 +1,5 @@
 import { In, MigrationInterface, QueryRunner } from 'typeorm';
-import { Course } from '../entities/course.entity'; // Adjust the import path as necessary
+import { Course } from '../course/entities/course.entity'; // Adjust the import path as necessary
 
 export class AddInitialCourses1740718900266 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {

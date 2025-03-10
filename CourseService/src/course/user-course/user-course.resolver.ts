@@ -1,5 +1,5 @@
 import { Args, Int, Mutation, Resolver } from '@nestjs/graphql';
-import { UserCourse } from '../../entities/user-course.entity';
+import { UserCourse } from '../entities/user-course.entity';
 import { UserCourseService } from './user-course.service';
 
 @Resolver((of) => UserCourse)
