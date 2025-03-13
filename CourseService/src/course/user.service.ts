@@ -10,7 +10,7 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  findByIds = async (ids: number[]): Promise<User[]> => {
+  async findByIds(ids: number[]): Promise<User[]> {
     return await this.userRepository.find({ where: { id: In(ids) } });
-  };
+  }
 }

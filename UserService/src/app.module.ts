@@ -2,10 +2,28 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { KafkaModule } from './kafka/kafka.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
+import {
+  ApolloFederationDriver,
+  ApolloFederationDriverConfig,
+} from '@nestjs/apollo';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Course } from 'src/entities/course.entity';
 
 @Module({
   imports: [
+    GraphQLModule.forRoot<ApolloFederationDriverConfig>({
+      driver: ApolloFederationDriver,
+      autoSchemaFile: {
+        federation: 2,
+        path: './src/user-schema.gql',
+      },
+      plugins: [ApolloServerPluginInlineTrace()],
+      buildSchemaOptions: {
+        orphanedTypes: [Course],
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true, // Makes the config globally available
       envFilePath: '.env', // Path to your environment file

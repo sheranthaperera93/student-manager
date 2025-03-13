@@ -27,7 +27,7 @@ export class UsersService {
     private readonly configService: ConfigService,
   ) {}
 
-  findAll = async ({
+  async findAll({
     skip,
     take,
     name,
@@ -39,7 +39,7 @@ export class UsersService {
     name?: string;
     email?: string;
     dateOfBirth?: DateOfBirthRangeInput;
-  }): Promise<PaginatedUsers> => {
+  }): Promise<PaginatedUsers> {
     const query = this.userRepository.createQueryBuilder('user');
     if (dateOfBirth) {
       if (dateOfBirth.from) {
@@ -76,20 +76,20 @@ export class UsersService {
 
     const [items, total] = await query.getManyAndCount();
     return { items, total };
-  };
+  }
 
-  findById = async (id: number): Promise<User> => {
+  async findById(id: number): Promise<User> {
     return this.userRepository.findOneByOrFail({ id });
-  };
+  }
 
-  findByIds = async (ids: number[]): Promise<User[]> => {
+  async findByIds(ids: number[]): Promise<User[]> {
     return await this.userRepository.find({ where: { id: In(ids) } });
-  };
+  }
 
-  update = async (
+  async update(
     id: number,
     updateUserInput: UserInputDTO,
-  ): Promise<string> => {
+  ): Promise<string> {
     try {
       const user = await this.findById(id);
       Object.assign(user, updateUserInput);
@@ -149,9 +149,9 @@ export class UsersService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  };
+  }
 
-  delete = async (id: number): Promise<string> => {
+  async delete(id: number): Promise<string> {
     try {
       await this.findById(id);
       await this.userRepository.delete({ id });
@@ -172,9 +172,9 @@ export class UsersService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  };
+  }
 
-  createBulk = async (userRecords: UserInputDTO[]): Promise<string> => {
+  async createBulk(userRecords: UserInputDTO[]): Promise<string> {
     try {
       const payload: UserInputBase[] = userRecords.map((record) => ({
         name: record.name!,
@@ -201,11 +201,11 @@ export class UsersService {
         HttpStatus.BAD_REQUEST,
       );
     }
-  };
+  }
 
-  handleUploadProcess = async (
+  async handleUploadProcess(
     files: Array<Express.Multer.File>,
-  ): Promise<{ fileName: string; filePath: string }> => {
+  ): Promise<{ fileName: string; filePath: string }> {
     try {
       const { fileName, filePath } = await this.uploadFiles(files);
       const payload = {
@@ -231,11 +231,11 @@ export class UsersService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  };
+  }
 
-  uploadFiles = async (
+  async uploadFiles(
     files: Array<Express.Multer.File>,
-  ): Promise<{ fileName: string; filePath: string }> => {
+  ): Promise<{ fileName: string; filePath: string }> {
     const zipFileName = `${Date.now()}-uploads.zip`;
     const uploadsDir = join(__dirname, '../', 'uploads');
     const zipFilePath = join(uploadsDir, zipFileName);
@@ -272,9 +272,9 @@ export class UsersService {
 
       archive.finalize();
     });
-  };
+  }
 
-  getFile = (fileName: string): string => {
+  getFile(fileName: string): string {
     const filePath = join(__dirname, '../', 'uploads', fileName);
     if (!existsSync(filePath)) {
       throw new CustomException(
@@ -285,9 +285,9 @@ export class UsersService {
       );
     }
     return filePath;
-  };
+  }
 
-  exportUsers = async (age: string) => {
+  async exportUsers(age: string) {
     const payload = {
       params: { age },
       action: 'export',
@@ -297,5 +297,5 @@ export class UsersService {
       messages: [{ value: JSON.stringify(payload) }],
     });
     return 'User export job created successfully';
-  };
+  }
 }

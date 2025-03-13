@@ -9,17 +9,17 @@ import { Response } from './models/response.model';
 export class CourseResolver {
   constructor(private readonly courseService: CourseService) {}
 
-  @Query((returns) => Course)
-  async getCourse(@Args({ name: 'id', type: () => Int }) id: number) {
-    return await this.courseService.findById(id);
-  }
-
   @Query((returns) => PaginatedCourses)
   async getCourses(
     @Args('skip', { type: () => Number, nullable: true }) skip?: number,
     @Args('take', { type: () => Number, nullable: true }) take?: number,
   ): Promise<PaginatedCourses> {
     return await this.courseService.findAll({ skip, take });
+  }
+
+  @Query((returns) => Course)
+  async getCourse(@Args({ name: 'id', type: () => Int }) id: number) {
+    return await this.courseService.findById(id);
   }
 
   @Mutation((returns) => Response)
