@@ -17,11 +17,13 @@ import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
 import { Course } from 'src/users/entities/course.entity';
 import { UserCourse } from 'src/users/entities/user-course.entity';
 import { UserCourseService } from './user-course/user-course.service';
+import { CourseService } from './course.service';
 
 @Resolver((of) => User)
 export class UsersResolver {
   constructor(
     private readonly userService: UsersService,
+    private readonly courseService: CourseService,
     private readonly userCourseService: UserCourseService,
   ) {}
 
@@ -44,17 +46,27 @@ export class UsersResolver {
     return this.userService.findById(id);
   }
 
-  @ResolveField((of) => [User])
-  async users(@Parent() course: Course): Promise<User[]> {
-    const userCourses = await this.userCourseService.findByCourseId(course.id);
-    const userIds = userCourses.map((uc: UserCourse) => uc.userId);
-    return await this.userService.findByIds(userIds);
+  @ResolveField((of) => [Course])
+  async courses(@Parent() user: User): Promise<Course[]> {
+    console.log('User', user);
+    const userCourses = await this.userCourseService.findByUserId(user.id);
+    console.log('userCourses', userCourses);
+    const courseIds = userCourses.map((uc: UserCourse) => uc.courseId);
+    console.log('courseIds', courseIds);
+    return await this.courseService.findByIds(courseIds);
   }
 
-  @ResolveReference()
-  resolveReference(ref: { id: number }): any {
-    return { __typename: 'User', id: ref.id };
-  }
+  // @ResolveField((of) => [User])
+  // async users(@Parent() course: Course): Promise<User[]> {
+  //   const userCourses = await this.userCourseService.findByCourseId(course.id);
+  //   const userIds = userCourses.map((uc: UserCourse) => uc.userId);
+  //   return await this.userService.findByIds(userIds);
+  // }
+
+  // @ResolveReference()
+  // resolveReference(ref: { id: number }): any {
+  //   return { __typename: 'User', id: ref.id };
+  // }
 
   @Mutation((returns) => Response)
   async updateUser(

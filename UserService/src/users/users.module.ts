@@ -10,9 +10,10 @@ import { HttpModule } from '@nestjs/axios';
 import { UserCourseService } from './user-course/user-course.service';
 import { Course } from 'src/users/entities/course.entity';
 import { UserCourse } from 'src/users/entities/user-course.entity';
+import { CourseService } from './course.service';
 
 @Module({
-  providers: [UsersResolver, UsersService, UserCourseService],
+  providers: [UsersResolver, UsersService, UserCourseService, CourseService],
   imports: [
     TypeOrmModule.forFeature([User, UserCourse, Course]),
     

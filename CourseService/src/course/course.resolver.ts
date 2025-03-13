@@ -17,11 +17,13 @@ import { Response } from './models/response.model';
 import { User } from './entities/user.entity';
 import { UserCourse } from './entities/user-course.entity';
 import { UserCourseService } from './user-course/user-course.service';
+import { UserService } from './user.service';
 
 @Resolver((of) => Course)
 export class CourseResolver {
   constructor(
     private readonly courseService: CourseService,
+    private readonly userService: UserService,
     private readonly userCourseService: UserCourseService
   ) {}
 
@@ -38,21 +40,21 @@ export class CourseResolver {
     return await this.courseService.findAll({ skip, take });
   }
 
-  @ResolveField((of) => [Course])
-  async courses(@Parent() user: User): Promise<Course[]> {
-    console.log('User', user);
-    const userCourses = await this.userCourseService.findByUserId(user.id);
+  @ResolveField((of) => [User])
+  async users(@Parent() course: Course): Promise<User[]> {
+    console.log('Course', course);
+    const userCourses = await this.userCourseService.findByUserId(course.id);
     console.log('userCourses', userCourses);
-    const courseIds = userCourses.map((uc: UserCourse) => uc.courseId);
-    console.log('courseIds', courseIds);
-    return await this.courseService.findByIds(courseIds);
+    const userId = userCourses.map((uc: UserCourse) => uc.userId);
+    console.log('userId', userId);
+    return await this.userService.findByIds(userId);
   }
 
-  @ResolveReference()
-  resolveReference(ref: { id: number }): any {
-    console.log('referencing in user resolver', ref);
-    return { __typename: 'User', id: ref.id };
-  }
+  // @ResolveReference()
+  // resolveReference(ref: { id: number }): any {
+  //   console.log('referencing in user resolver', ref);
+  //   return { __typename: 'User', id: ref.id };
+  // }
 
   @Mutation((returns) => Response)
   async updateCourse(
