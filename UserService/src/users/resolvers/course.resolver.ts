@@ -5,8 +5,8 @@ import {
     ResolveReference,
   } from '@nestjs/graphql';
   import { User } from '../entities/user.entity';
-  import { UsersService } from './users.service';
-  import { UserCourseService } from './user-course/user-course.service';
+  import { UsersService } from '../services/users.service';
+  import { UserCourseService } from '../services/user-course.service';
   import { Course } from '../entities/course.entity';
   import { UserCourse } from '../entities/user-course.entity';
   

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CourseService } from './course.service';
+import { CourseService } from '../services/course.service';
 import { Course } from '../entities/course.entity';
 import { CustomException } from 'src/core/custom-exception';
 
@@ -32,7 +32,7 @@ describe('CourseService', () => {
 
   describe('findAllByUserId', () => {
     it('should return an array of courses', async () => {
-      const userId = 1;
+      const userId = [1];
       const courses = [
         {
           id: 1,
@@ -49,7 +49,7 @@ describe('CourseService', () => {
       ];
       jest.spyOn(courseRepository, 'findBy').mockResolvedValue(courses);
 
-      expect(await service.findAllByUserId(userId)).toEqual(courses);
+      expect(await service.findByIds(userId)).toEqual(courses);
     });
   });
 
@@ -63,7 +63,7 @@ describe('CourseService', () => {
       };
       jest.spyOn(courseRepository, 'findOneByOrFail').mockResolvedValue(course);
 
-      expect(await service.findOne(1)).toEqual(course);
+      expect(await service.findById(1)).toEqual(course);
     });
 
     it('should throw a CustomException if course not found', async () => {
@@ -71,7 +71,7 @@ describe('CourseService', () => {
         .spyOn(courseRepository, 'findOneByOrFail')
         .mockRejectedValue(new Error());
 
-      await expect(service.findOne(1)).rejects.toThrow(CustomException);
+      await expect(service.findById(1)).rejects.toThrow(CustomException);
     });
   });
 
@@ -93,7 +93,7 @@ describe('CourseService', () => {
       ];
       jest.spyOn(courseRepository, 'find').mockResolvedValue(courses);
 
-      expect(await service.findAll()).toEqual(courses);
+      expect(await service.findAll({skip: 0, take: 10})).toEqual(courses);
     });
   });
 });

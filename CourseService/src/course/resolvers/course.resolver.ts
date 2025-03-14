@@ -1,9 +1,9 @@
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Course } from '../entities/course.entity';
-import { CourseService } from './course.service';
-import { PaginatedCourses } from './models/paginated-courses.model';
-import { CourseInputDTO } from './models/course-input.dto';
-import { Response } from './models/response.model';
+import { CourseService } from '../services/course.service';
+import { PaginatedCourses } from '../models/paginated-courses.model';
+import { CourseInputDTO } from '../models/course-input.dto';
+import { Response } from '../models/response.model';
 
 @Resolver((of) => Course)
 export class CourseResolver {

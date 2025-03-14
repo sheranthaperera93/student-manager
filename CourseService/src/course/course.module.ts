@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
-import { CourseService } from './course.service';
+import { CourseService } from './services/course.service';
 
-import { CourseResolver } from './course.resolver';
+import { CourseResolver } from './resolvers/course.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Course } from '../entities/course.entity';
-import { User } from '../entities/user.entity';
-import { UserResolver } from './user.resolver';
+import { Course } from './entities/course.entity';
+import { User } from './entities/user.entity';
+import { UserResolver } from './resolvers/user.resolver';
 import { UserCourseService } from './user-course/user-course.service';
-import { UserCourse } from '../entities/user-course.entity';
+import { UserCourse } from './entities/user-course.entity';
 import { UserCourseResolver } from './user-course/user-course.resolver';
-import { UserService } from './user.service';
+import { UserService } from './services/user.service';
 
 @Module({
   imports: [

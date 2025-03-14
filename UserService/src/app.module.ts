@@ -9,7 +9,7 @@ import {
   ApolloFederationDriverConfig,
 } from '@nestjs/apollo';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Course } from 'src/entities/course.entity';
+import { Course } from 'src/users/entities/course.entity';
 
 @Module({
   imports: [

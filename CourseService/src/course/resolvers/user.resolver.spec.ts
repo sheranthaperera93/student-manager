@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserResolver } from './user.resolver';
-import { CourseService } from './course.service';
+import { CourseService } from '../services/course.service';
 import { User } from '../entities/user.entity';
 import { Course } from '../entities/course.entity';
 
@@ -31,11 +31,10 @@ describe('UserResolver', () => {
       id: 1,
       name: 'Mastering React Native',
       description: 'Mastering react native knowledge',
-      userId: 1,
-    },] as Course[];
-    jest.spyOn(courseService, 'findAllByUserId').mockResolvedValue(courses);
+    }];
+    jest.spyOn(courseService, 'findByIds').mockResolvedValue(courses);
 
     expect(await resolver.courses(user)).toBe(courses);
-    expect(courseService.findAllByUserId).toHaveBeenCalledWith(user.id);
+    expect(courseService.findByIds).toHaveBeenCalledWith(user.id);
   });
 });

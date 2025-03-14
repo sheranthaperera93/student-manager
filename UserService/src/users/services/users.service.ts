@@ -3,16 +3,16 @@ import { createWriteStream, mkdirSync, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import * as archiver from 'archiver';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { User } from 'src/users/entities/user.entity';
 import { EntityNotFoundError, Repository, In } from 'typeorm';
-import { PaginatedUsers } from './models/paginated-users.model';
+import { PaginatedUsers } from './../models/paginated-users.model';
 import {
   CustomException,
   DuplicateEntryException,
 } from 'src/core/exception-handlers';
 import { ProducerService } from 'src/kafka/producer/producer.service';
-import { UserInputBase, UserInputDTO } from './models/user-input.dto';
-import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
+import { UserInputBase, UserInputDTO } from './../models/user-input.dto';
+import { DateOfBirthRangeInput } from './../models/date-of-birth.dto';
 import { HttpService } from '@nestjs/axios';
 import { lastValueFrom } from 'rxjs';
 import { ConfigService } from '@nestjs/config';

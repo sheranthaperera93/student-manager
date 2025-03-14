@@ -4,8 +4,8 @@ import * as request from 'supertest';
 import { App } from 'supertest/types';
 import { mockCourseService } from './mocks';
 import { CourseModule } from 'src/course/course.module';
-import { CourseService } from 'src/course/course.service';
-import { Course } from 'src/entities/course.entity';
+import { CourseService } from 'src/course/services/course.service';
+import { Course } from 'src/course/entities/course.entity';
 
 describe('CourseService (e2e)', () => {
   let app: INestApplication<App>;

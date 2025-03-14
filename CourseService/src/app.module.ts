@@ -8,7 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CourseModule } from './course/course.module';
-import { User } from './entities/user.entity';
+import { User } from './course/entities/user.entity';
 
 @Module({
   imports: [

@@ -1,10 +1,10 @@
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { UsersService } from './users.service';
-import { PaginatedUsers } from './models/paginated-users.model';
-import { Response } from './models/response.model';
-import { User } from 'src/entities/user.entity';
-import { UserInputDTO } from './models/user-input.dto';
-import { DateOfBirthRangeInput } from './models/date-of-birth.dto';
+import { UsersService } from '../services/users.service';
+import { PaginatedUsers } from '../models/paginated-users.model';
+import { Response } from '../models/response.model';
+import { User } from 'src/users/entities/user.entity';
+import { UserInputDTO } from '../models/user-input.dto';
+import { DateOfBirthRangeInput } from '../models/date-of-birth.dto';
 
 @Resolver((of) => User)
 export class UsersResolver {
