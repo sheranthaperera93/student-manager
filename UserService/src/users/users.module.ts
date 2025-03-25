@@ -7,7 +7,7 @@ import { UsersController } from './controllers/users.controller';
 import { KafkaModule } from 'src/kafka/kafka.module';
 import { HttpModule } from '@nestjs/axios';
 import { UserCourseService } from './services/user-course.service';
-import { Course } from 'src/users/entities/course.entity';
+import { Course } from 'src/users/types/course.type';
 import { UserCourse } from 'src/users/entities/user-course.entity';
 import { CourseResolver } from './resolvers/course.resolver';
 

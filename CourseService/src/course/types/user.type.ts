@@ -1,5 +1,5 @@
 import { Directive, Field, ID, ObjectType } from '@nestjs/graphql';
-import { Course } from './course.entity';
+import { Course } from '../entities/course.entity';
 
 @ObjectType()
 @Directive('@extends')

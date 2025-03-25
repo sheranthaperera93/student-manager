@@ -4,7 +4,7 @@ import { CourseService } from './services/course.service';
 import { CourseResolver } from './resolvers/course.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Course } from './entities/course.entity';
-import { User } from './entities/user.entity';
+import { User } from './types/user.type';
 import { UserResolver } from './resolvers/user.resolver';
 import { UserCourseService } from './user-course/user-course.service';
 import { UserCourse } from './entities/user-course.entity';
